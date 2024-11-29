@@ -32,7 +32,7 @@ build integration tests:
   stage: build
   needs: []
   script:
-    - docker stop test-container || true
+    - docker rm -f test-container || true
     - docker build -t tests:latest -f build/integrationTests/Dockerfile ./
 
 integration tests:
@@ -47,4 +47,5 @@ deploy job:
   needs: ["linting", "static test", "build compose file", "integration tests"]
   script:
     - docker compose -f ./deployments/docker-compose.yml down -v
+    - docker volume prune -f
     - docker compose -f ./deployments/docker-compose.yml up -d
