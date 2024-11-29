@@ -1,0 +1,45 @@
+stages:
+  - linting
+  - build
+  - test
+  - deploy
+
+linting:
+  stage: linting
+  script:
+    - echo "Linting ..."
+    - sleep 5
+
+static_test:
+  stage: test
+  script:
+    - echo "Testing static tests ..."
+    - sleep 5
+
+build_compose:
+  stage: build
+  needs: ["linting", "static_test"]
+  script:
+    - echo "Building ..."
+    - sleep 5
+
+build_integration_tests:
+  stage: build
+  needs: ["linting", "static_test"]
+  script:
+    - echo "Building tests ..."
+    - sleep 5
+
+integration_tests:
+  stage: test
+  needs: ["build_compose", "build_integration_tests"]
+  script:
+    - echo "Running integration tests ..."
+    - sleep 5
+
+deploy:
+  stage: deploy
+  needs: ["integration_tests"]
+  script:
+    - echo "Deploying ..."
+    - sleep 5
