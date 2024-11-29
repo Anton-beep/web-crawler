@@ -1,12 +1,11 @@
 stages:
-  - linting
-  - test
+  - static check
   - build
   - integration tests
   - deploy
 
 linting:
-  stage: linting
+  stage: static check
   image: golang:1.22-alpine
   script:
     - wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.62.2
@@ -14,12 +13,12 @@ linting:
     - ./bin/golangci-lint run
 
 static test:
-  stage: test
+  stage: static check
   needs: []
   image: golang:1.22-alpine
   script:
     - go mod download
-    - cp configs/.env.example .env
+    - cp ./configs/.env.example ./configs/.env
     - go test -count=1 -cover -v ./...
 
 build compose file:
