@@ -8,6 +8,6 @@ COPY /configs/Docker.env.template /app/configs/.env
 
 RUN go mod download
 
-RUN ["chmod", "+x", "./bin/check_coverage.sh"]
+RUN ["chmod", "+x", "./scripts/check_coverage.sh"]
 
 CMD ["./bin/check_coverage.sh"]
