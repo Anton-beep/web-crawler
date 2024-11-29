@@ -1,0 +1,266 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Web Crawler Api",
+    "description": "Description is to be done ",
+    "version": "0.0.1"
+  },
+  "externalDocs": {
+    "description": "NEED TO PUT GITLAB/GITHUB LINK HERE",
+    "url": "http://swagger.io"
+  },
+  "servers": [
+    {
+      "url": "NEED TO PUT SERVER URL HERE"
+    }
+  ],
+  "tags": [
+    {
+      "name": "user",
+      "description": "User login/registration"
+    }
+  ],
+  "paths": {
+    "/user/register": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Register a new user",
+        "requestBody": {
+          "description": "User to create",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessToken"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/login": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Logs user into the system",
+        "requestBody": {
+          "description": "Existing user",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessToken"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/logout": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Logs out current logged in user session",
+        "description": "",
+        "operationId": "logoutUser",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicServerAnswer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/edit": {
+      "put": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string",
+                "example": "your access token"
+            }
+          }
+        ],
+        "tags": [
+          "user"
+        ],
+        "summary": "Edit user",
+        "requestBody": {
+          "description": "User to edit",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicServerAnswer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BasicServerAnswer": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "ok"
+          }
+        }
+      },
+      "User": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BasicServerAnswer"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "abc10"
+              },
+              "username": {
+                "type": "string",
+                "example": "theUser"
+              },
+              "email": {
+                "type": "string",
+                "example": "bibbob@email.com"
+              },
+              "password": {
+                "type": "string",
+                "example": "12345"
+              }
+            }
+          }
+        ],
+        "xml": {
+          "name": "user"
+        }
+      },
+      "AccessToken": {
+        "type": "object",
+        "properties": {
+          "access": {
+            "type": "string",
+            "example": "tokentokentokentokentokentokentoken"
+          }
+        }
+      }
+    }
+  }
+}
