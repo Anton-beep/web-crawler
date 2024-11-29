@@ -17,7 +17,6 @@ services:
 
   nginx:
     image: nginx
-    container_name: nginx_container
     ports:
       - "80:80"
     volumes:
