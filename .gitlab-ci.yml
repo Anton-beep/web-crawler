@@ -18,6 +18,7 @@ static test:
   image: golang:1.22-alpine
   script:
     - go mod download
+    - ls -la
     - cp ./configs/.env.example ./configs/.env
     - go test -count=1 -cover -v ./...
 
@@ -30,7 +31,7 @@ build compose file:
 
 build integration tests:
   stage: build
-  needs: ["static test"]
+  needs: []
   script:
     - docker stop tests:latest
     - docker build -t tests:latest -f .\build\integrationTests\Dockerfile ./
@@ -44,7 +45,7 @@ integration tests:
 
 deploy job:
   stage: deploy
-  needs: ["integration tests"]
+  needs: ["linting", "static test", "build compose file", "integration tests"]
   script:
     - docker compose -f ./deployments/docker-compose.yml down -v
     - docker compose -f ./deployments/docker-compose.yml up -d
