@@ -21,8 +21,6 @@ services:
       - "80:80"
     volumes:
       - ../configs/nginx/:/etc/nginx/
-    depends_on:
-      - backend
     networks:
       - service-network
 
@@ -53,20 +51,6 @@ services:
       retries: 10
     env_file:
       - ../configs/Docker.env.template
-    networks:
-      - service-network
-
-  backend:
-    build:
-      context: ..
-      dockerfile: build/main_server/Dockerfile
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_started
     networks:
       - service-network
 
