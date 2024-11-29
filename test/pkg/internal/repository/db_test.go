@@ -10,13 +10,11 @@ import (
 )
 
 var (
-	db    models.LongTermDataBase
-	cache models.ShortTermDataBase
+	db models.LongTermDataBase
 )
 
 func TestMain(m *testing.M) {
 	db = repository.NewDB()
-	cache = repository.NewCache()
 	code := m.Run()
 	os.Exit(code)
 }
@@ -126,4 +124,45 @@ func TestDeleteNonExistentProject(t *testing.T) {
 func TestDeleteNonExistentDashboard(t *testing.T) {
 	err := db.DeleteDashBoard("123456")
 	assert.NotEqual(t, err, nil, "Dashboard with id 123456 doesn't exist")
+}
+
+func TestGetNonExistentProjectTemporaryData(t *testing.T) {
+	_, err := db.GetProjectTemporaryData("123456")
+	assert.NotEqual(t, err, nil, "ProjectTemporaryData with id 123456 doesn't exist")
+}
+
+func TestDeleteNonExistentProjectTemporaryData(t *testing.T) {
+	err := db.DeleteProjectTemporaryData("123456")
+	assert.NotEqual(t, err, nil, "Deleting non-existent ProjectTemporaryData should return an error")
+}
+
+func TestCheckLink(t *testing.T) {
+	status, err := db.CheckLink("non-existent-link")
+	assert.Equal(t, status, false, "Link shouldn't be checked")
+	assert.Equal(t, err, nil, "Checking non-existent link shouldn't return an error")
+}
+
+func TestUpdateLink(t *testing.T) {
+	db.UpdateLink("test-link", true)
+	exists, err := db.CheckLink("test-link")
+	assert.Equal(t, exists, true, "Link should exist after update")
+	assert.Equal(t, err, nil, "Checking link shouldn't return an error")
+}
+
+func TestCreateAndRetrieveProjectTemporaryData(t *testing.T) {
+	data := &models.ProjectTemporaryData{}
+	err := db.CreateProjectTemporaryData("123456", data)
+	assert.Equal(t, err, nil, "Updating ProjectTemporaryData should not return an error")
+
+	retrievedData, err := db.GetProjectTemporaryData("123456")
+	assert.Equal(t, err, nil, "Retrieving ProjectTemporaryData should not return an error")
+	assert.Equal(t, retrievedData, data, "Retrieved ProjectTemporaryData should match the original")
+}
+
+func TestDeleteProjectTemporaryData(t *testing.T) {
+	err := db.DeleteProjectTemporaryData("123456")
+	assert.Equal(t, err, nil, "Deleting ProjectTemporaryData should not return an error")
+
+	_, err = db.GetProjectTemporaryData("123456")
+	assert.NotEqual(t, err, nil, "ProjectTemporaryData with id 123456 should not exist after deletion")
 }

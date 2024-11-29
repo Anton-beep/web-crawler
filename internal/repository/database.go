@@ -9,6 +9,9 @@ import (
 type DataBase struct {
 	proj map[string]*models.Project
 	dash map[string]*models.Dashboard
+
+	mp  map[string]*models.ProjectTemporaryData
+	url map[string]bool
 }
 
 func (d DataBase) GetProject(id string) (*models.Project, error) {
@@ -88,9 +91,61 @@ func (d DataBase) GetProjectsByOwnerId(ownerId string) ([]*models.Project, error
 	return res, nil
 }
 
+func (d DataBase) GetProjectTemporaryData(id string) (*models.ProjectTemporaryData, error) {
+	//TODO implement me
+	//panic("implement me")
+
+	res, ok := d.mp[id]
+	if !ok {
+		return nil, errors.New("ProjectTemporaryData with id " + id + " doesn't exist")
+	}
+	return res, nil
+}
+
+func (d DataBase) CreateProjectTemporaryData(id string, data *models.ProjectTemporaryData) error {
+	//TODO implement me
+	//panic("implement me")
+	d.mp[id] = data
+	return nil
+}
+
+func (d DataBase) DeleteProjectTemporaryData(id string) error {
+	//TODO implement me
+	//panic("implement me")
+
+	_, ok := d.mp[id]
+	if !ok {
+		return errors.New("ProjectTemporaryData with id " + id + " doesn't exist")
+	}
+	delete(d.mp, id)
+	return nil
+}
+
+func (d DataBase) CheckLink(slag string) (bool, error) {
+	//TODO implement me
+	//panic("implement me")
+
+	v, ok := d.url[slag]
+	if !ok {
+		d.url[slag] = false
+		return false, nil
+	}
+	return v, nil
+}
+
+func (d DataBase) UpdateLink(slag string, status bool) error {
+	//TODO implement me
+	//panic("implement me")
+
+	d.url[slag] = status
+	return nil
+}
+
 func NewDB() models.LongTermDataBase {
 	return DataBase{
 		proj: make(map[string]*models.Project),
 		dash: make(map[string]*models.Dashboard),
+		mp:   make(map[string]*models.ProjectTemporaryData),
+		url:  make(map[string]bool),
 	}
 }

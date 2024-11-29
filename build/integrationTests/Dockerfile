@@ -1,0 +1,13 @@
+FROM golang:1.22-alpine
+
+WORKDIR /app
+
+COPY ../../ .
+
+COPY /configs/Docker.env.template /app/configs/.env
+
+RUN go mod download
+
+RUN ["chmod", "+x", "./bin/check_coverage.sh"]
+
+CMD ["./bin/check_coverage.sh"]
