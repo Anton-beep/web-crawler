@@ -10,4 +10,4 @@ RUN go mod download
 
 RUN ["chmod", "+x", "./scripts/check_coverage.sh"]
 
-CMD ["./bin/check_coverage.sh"]
+CMD ["./scripts/check_coverage.sh"]
