@@ -1,4 +1,4 @@
-module experiments
+module web-crauler
 
 go 1.22.9
 
