@@ -105,5 +105,3 @@ fabric.properties
 Docker.env
 postgres_data
 redis_data
-
-go.sum
