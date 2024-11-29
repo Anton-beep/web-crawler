@@ -33,13 +33,13 @@ build integration tests:
   needs: []
   script:
     - docker stop tests:latest || true
-    - docker build -t tests:latest -f .\build\integrationTests\Dockerfile ./
+    - docker build -t tests:latest -f build/integrationTests/Dockerfile ./
 
 integration tests:
   stage: integration tests
   needs: ["build compose file", "build integration tests"]
   script:
-    - docker compose -f .\deployments\docker-compose.yml up -d
+    - docker compose -f deployments/docker-compose.yml up -d
     - docker run --network=deployments_service-network --name test-container -it tests:latest
 
 deploy job:
