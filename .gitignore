@@ -103,3 +103,5 @@ fabric.properties
 
 .env
 Docker.env
+postgres_data
+redis_data
