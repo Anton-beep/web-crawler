@@ -18,8 +18,7 @@ static test:
   image: golang:1.22-alpine
   script:
     - go mod download
-    - ls -la
-    - cp ./configs/.env.example ./configs/.env
+    - cp configs/.env.template configs/.env
     - go test -count=1 -cover -v ./...
 
 build compose file:
