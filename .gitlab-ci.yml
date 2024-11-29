@@ -32,7 +32,7 @@ build integration tests:
   stage: build
   needs: []
   script:
-    - docker stop tests:latest || true
+    - docker stop test-container || true
     - docker build -t tests:latest -f build/integrationTests/Dockerfile ./
 
 integration tests:
