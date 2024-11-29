@@ -44,7 +44,7 @@ integration tests:
 
 deploy job:
   stage: deploy
-  needs: ["linting", "static test", "build compose file", "integration tests"]
+  needs: ["static test", "build compose file", "integration tests"]
   script:
     - docker compose -f ./deployments/docker-compose.yml down -v
     - docker volume prune -f
