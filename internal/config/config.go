@@ -1,6 +1,8 @@
 package config
 
-import "github.com/ilyakaznacheev/cleanenv"
+import (
+	"github.com/ilyakaznacheev/cleanenv"
+)
 
 // PostgresConfig TODO move the configuration structure from this package to the postgres connection package
 type PostgresConfig struct {
@@ -23,14 +25,15 @@ type KafkaConfig struct {
 }
 
 type Config struct {
-	Postgres PostgresConfig
-	Redis    RedisConfig
-	Kafka    KafkaConfig
+	Postgres      PostgresConfig
+	Redis         RedisConfig
+	Kafka         KafkaConfig
+	IsRanInDocker bool `env:"IS_RAN_IN_DOCKER" env-default:"false"`
 }
 
 func NewConfig() *Config {
 	var cfg Config
-	err := cleanenv.ReadConfig("configs/.env", &cfg)
+	err := cleanenv.ReadConfig("../../configs/.env", &cfg)
 	if err != nil {
 		return nil
 	}

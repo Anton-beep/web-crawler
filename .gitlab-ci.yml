@@ -1,0 +1,50 @@
+stages:
+  - static check
+  - build
+  - integration tests
+  - deploy
+
+linting:
+  stage: static check
+  image: golang:1.22-alpine
+  script:
+    - wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.62.2
+    - ./bin/golangci-lint --version
+    - ./bin/golangci-lint run
+
+static test:
+  stage: static check
+  needs: []
+  image: golang:1.22-alpine
+  script:
+    - go mod download
+    - cp configs/.env.template configs/.env
+    - go test -count=1 -cover -v ./...
+
+build compose file:
+  stage: build
+  needs: ["static test"]
+  script:
+    - docker compose -f deployments/docker-compose.yml down
+    - docker compose -f deployments/docker-compose.yml build
+
+build integration tests:
+  stage: build
+  needs: []
+  script:
+    - docker stop tests:latest || true
+    - docker build -t tests:latest -f build/integrationTests/Dockerfile ./
+
+integration tests:
+  stage: integration tests
+  needs: ["build compose file", "build integration tests"]
+  script:
+    - docker compose -f deployments/docker-compose.yml up -d
+    - docker run --network=deployments_service-network --name test-container -it tests:latest
+
+deploy job:
+  stage: deploy
+  needs: ["linting", "static test", "build compose file", "integration tests"]
+  script:
+    - docker compose -f ./deployments/docker-compose.yml down -v
+    - docker compose -f ./deployments/docker-compose.yml up -d

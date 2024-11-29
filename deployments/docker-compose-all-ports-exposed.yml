@@ -1,27 +1,23 @@
+# Attention, all ports are exposed to localhost. Use for debug only
+
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper
     ports:
       - "2181:2181"
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-      ZOOKEEPER_SYNC_LIMIT: 2
+    env_file:
+      - ../configs/Docker.env.template
     networks:
       - service-network
 
   kafka:
     image: confluentinc/cp-kafka
     ports:
-      - 9094:9094
+      - "9094:9094"
     depends_on:
       - zookeeper
-    environment:
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,OUTSIDE://0.0.0.0:9094
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,OUTSIDE://localhost:9094
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,OUTSIDE:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+    env_file:
+      - ../configs/Docker.env.template
     networks:
       - service-network
 
@@ -31,7 +27,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./configs/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ../configs/nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - backend
     networks:
@@ -41,7 +37,7 @@ services:
     image: postgres:15
     container_name: postgres_container
     env_file:
-      - ./configs/Docker.env
+      - ../configs/Docker.env.template
     networks:
       - service-network
     volumes:
@@ -67,15 +63,14 @@ services:
       timeout: 10s
       retries: 10
     env_file:
-      - ./configs/Docker.env
+      - ../configs/Docker.env.template
     networks:
       - service-network
 
   backend:
     build:
+      context: ..
       dockerfile: build/main_server/Dockerfile
-    env_file:
-      - ./configs/Docker.env
     ports:
       - "8080:8080"
     depends_on:
