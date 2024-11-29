@@ -20,7 +20,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ../configs/nginx.conf:/etc/nginx/conf/conf.d
+      - ../configs/:/etc/nginx/
     depends_on:
       - backend
     networks:
