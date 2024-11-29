@@ -20,7 +20,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ../configs/nginx.conf:/etc/nginx/nginx.conf
+      - /builds/gospec/go1/web-crawler/configs/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       - backend
     networks:
