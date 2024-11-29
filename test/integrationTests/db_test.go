@@ -1,27 +1,36 @@
-package repository_test
+package integrationTests_test
 
 import (
-	"experiments/internal/models"
-	"experiments/internal/repository"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+	"web-crauler/internal/config"
+	"web-crauler/internal/models"
+	"web-crauler/internal/repository"
 )
 
 var (
-	db models.LongTermDataBase
+	db  models.DataBase
+	cfg *config.Config
 )
 
 func TestMain(m *testing.M) {
 	db = repository.NewDB()
+	cfg = config.NewConfig()
 	code := m.Run()
 	os.Exit(code)
 }
 
 func TestCreateAndRetrieveProject(t *testing.T) {
+	if !cfg.IsRanInDocker {
+		return
+	}
+
 	proj1 := models.Project{
-		OwnerID: "1",
+		OwnerID:  "1",
+		WebGraph: "",
+		DlqSites: nil,
 	}
 	proj1Id, err := db.CreateProject(proj1)
 	assert.Equal(t, err, nil, "Creating a new project does not imply an error")
@@ -33,10 +42,16 @@ func TestCreateAndRetrieveProject(t *testing.T) {
 }
 
 func TestGetProjects(t *testing.T) {
+	if !cfg.IsRanInDocker {
+		return
+	}
+
 	expectedProjects := make([]models.Project, 0)
 	for i := 0; i < 10; i++ {
 		proj := models.Project{
-			OwnerID: fmt.Sprintf("0"),
+			OwnerID:  fmt.Sprintf("0"),
+			WebGraph: "",
+			DlqSites: nil,
 		}
 		projId, err := db.CreateProject(proj)
 		assert.Equal(t, err, nil, "Creating a new project does not imply an error")
@@ -49,7 +64,7 @@ func TestGetProjects(t *testing.T) {
 	for i := 0; i < len(receivedProjects); i++ {
 		found := false
 		for j := 0; j < len(expectedProjects); j++ {
-			if *receivedProjects[i] == expectedProjects[j] {
+			if receivedProjects[i].Equals(expectedProjects[j]) {
 				found = true
 				break
 			}
@@ -58,29 +73,11 @@ func TestGetProjects(t *testing.T) {
 	}
 }
 
-func TestCreateAndRetrieveDashboard(t *testing.T) {
-	proj1 := models.Project{
-		OwnerID: "1",
-	}
-	proj1Id, err := db.CreateProject(proj1)
-	assert.Equal(t, err, nil, "Creating a new project does not imply an error")
-	proj1.ID = proj1Id
-
-	dash1 := models.Dashboard{
-		ProjectID: proj1Id,
-		WebGraph:  "",
-		DlqSites:  nil,
-	}
-	dash1Id, err := db.CreateDashboard(dash1)
-	assert.Equal(t, err, nil, fmt.Sprintf("Creating a new dashboard does not imply an error"))
-	dash1.ID = dash1Id
-
-	dash1Copy, err := db.GetDashboard(dash1Id)
-	assert.Equal(t, err, nil, fmt.Sprintf("Dashboard with id %s exists", dash1Id))
-	assert.Equal(t, *dash1Copy, dash1, fmt.Sprintf("Dashboards don't match %v != %v", *dash1Copy, dash1))
-}
-
 func TestDeleteProject(t *testing.T) {
+	if !cfg.IsRanInDocker {
+		return
+	}
+
 	proj1 := models.Project{
 		OwnerID: "1",
 	}
@@ -94,55 +91,48 @@ func TestDeleteProject(t *testing.T) {
 	assert.NotEqual(t, err, nil, "Project with id %s doesn't exist", proj1Id)
 }
 
-func TestDeleteDashboard(t *testing.T) {
-	proj1 := models.Project{
-		OwnerID: "1",
-	}
-	proj1Id, err := db.CreateProject(proj1)
-	assert.Equal(t, err, nil, "Creating a new project does not imply an error")
-
-	dash1 := models.Dashboard{
-		ProjectID: proj1Id,
-		WebGraph:  "",
-		DlqSites:  nil,
-	}
-	dash1Id, err := db.CreateDashboard(dash1)
-	assert.Equal(t, err, nil, fmt.Sprintf("Creating a new dashboard does not imply an error"))
-
-	err = db.DeleteDashBoard(dash1Id)
-	assert.Equal(t, err, nil, "Deleting a dashboard does not imply an error")
-
-	_, err = db.GetDashboard(dash1Id)
-	assert.NotEqual(t, err, nil, "Dashboard with id %s doesn't exist", dash1)
-}
-
 func TestDeleteNonExistentProject(t *testing.T) {
+	if !cfg.IsRanInDocker {
+		return
+	}
+
 	err := db.DeleteProject("123456")
 	assert.NotEqual(t, err, nil, "Project with id 123456 doesn't exist")
 }
 
-func TestDeleteNonExistentDashboard(t *testing.T) {
-	err := db.DeleteDashBoard("123456")
-	assert.NotEqual(t, err, nil, "Dashboard with id 123456 doesn't exist")
-}
-
 func TestGetNonExistentProjectTemporaryData(t *testing.T) {
+	if !cfg.IsRanInDocker {
+		return
+	}
+
 	_, err := db.GetProjectTemporaryData("123456")
 	assert.NotEqual(t, err, nil, "ProjectTemporaryData with id 123456 doesn't exist")
 }
 
 func TestDeleteNonExistentProjectTemporaryData(t *testing.T) {
+	if !cfg.IsRanInDocker {
+		return
+	}
+
 	err := db.DeleteProjectTemporaryData("123456")
 	assert.NotEqual(t, err, nil, "Deleting non-existent ProjectTemporaryData should return an error")
 }
 
 func TestCheckLink(t *testing.T) {
+	if !cfg.IsRanInDocker {
+		return
+	}
+
 	status, err := db.CheckLink("non-existent-link")
 	assert.Equal(t, status, false, "Link shouldn't be checked")
 	assert.Equal(t, err, nil, "Checking non-existent link shouldn't return an error")
 }
 
 func TestUpdateLink(t *testing.T) {
+	if !cfg.IsRanInDocker {
+		return
+	}
+
 	db.UpdateLink("test-link", true)
 	exists, err := db.CheckLink("test-link")
 	assert.Equal(t, exists, true, "Link should exist after update")
@@ -150,6 +140,10 @@ func TestUpdateLink(t *testing.T) {
 }
 
 func TestCreateAndRetrieveProjectTemporaryData(t *testing.T) {
+	if !cfg.IsRanInDocker {
+		return
+	}
+
 	data := &models.ProjectTemporaryData{}
 	err := db.CreateProjectTemporaryData("123456", data)
 	assert.Equal(t, err, nil, "Updating ProjectTemporaryData should not return an error")
@@ -160,6 +154,10 @@ func TestCreateAndRetrieveProjectTemporaryData(t *testing.T) {
 }
 
 func TestDeleteProjectTemporaryData(t *testing.T) {
+	if !cfg.IsRanInDocker {
+		return
+	}
+
 	err := db.DeleteProjectTemporaryData("123456")
 	assert.Equal(t, err, nil, "Deleting ProjectTemporaryData should not return an error")
 

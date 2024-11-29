@@ -6,7 +6,7 @@ services:
     ports:
       - "2181:2181"
     env_file:
-      - ../configs/Docker.env.template
+      - ../configs/.env.template
     networks:
       - service-network
 
@@ -17,18 +17,7 @@ services:
     depends_on:
       - zookeeper
     env_file:
-      - ../configs/Docker.env.template
-    networks:
-      - service-network
-
-  nginx:
-    image: nginx
-    ports:
-      - "80:80"
-    volumes:
-      - ../configs/nginx/:/etc/nginx/
-    depends_on:
-      - backend
+      - ../configs/.env.template
     networks:
       - service-network
 
@@ -36,7 +25,7 @@ services:
     image: postgres:15
     container_name: postgres_container
     env_file:
-      - ../configs/Docker.env.template
+      - ../configs/.env.template
     networks:
       - service-network
     volumes:
@@ -62,23 +51,7 @@ services:
       timeout: 10s
       retries: 10
     env_file:
-      - ../configs/Docker.env.template
-    networks:
-      - service-network
-
-  backend:
-    build:
-      context: ..
-      dockerfile: build/main_server/Dockerfile
-    ports:
-      - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_started
+      - ../configs/.env.template
     networks:
       - service-network
 
