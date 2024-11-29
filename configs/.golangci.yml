@@ -1,0 +1,5 @@
+# https://golangci-lint.run/usage/configuration/
+
+issues:
+  exclude-dirs:
+    - frontend
