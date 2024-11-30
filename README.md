@@ -6,7 +6,7 @@ To run a project in production mode
 - Install [Docker](https://www.docker.com)
 - Run the command
 ```bash
-docker compose -f .\deployments\docker-compose.yml up
+docker compose -f .\deployments\docker-compose.yml up --build
 ```
 
 # Dev
@@ -18,7 +18,7 @@ To run a project in development mode
 - Install [Docker](https://www.docker.com)
 - Run the command
 ```bash
-docker compose -f .\deployments\docker-compose-dev.yml up
+docker compose -f .\deployments\docker-compose-dev.yml up --build
 ```
 In this mode, all third-party containers will be deployed. The ports will be forwarded to localhost.
 ## How to start services
@@ -103,7 +103,7 @@ To run integration tests,
 - Install [Docker](https://www.docker.com)
 - Run the command
 ```bash
-docker compose -f .\deployments\docker-compose-dev.yml up
+docker compose -f .\deployments\docker-compose-dev.yml up --build
 ```
 In this mode, all third-party containers will be deployed. The ports will be forwarded to localhost.
 Next run the command
