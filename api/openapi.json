@@ -252,6 +252,44 @@
           "name": "user"
         }
       },
+      "Project": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BasicServerAnswer"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "abc10"
+              },
+              "name": {
+                "type": "string",
+                "example": "theProject"
+              },
+              "webgraph": {
+                "type": "string",
+                "example": "graph data"
+              },
+              "dlq_sites": {
+                "type": "array",
+                "example": [
+                    "site1",
+                    "site2"
+                ]
+              },
+              "analysis_data": {
+                "type": "array",
+                "example": [
+                    "data1",
+                    "data2"
+                ]
+              }
+            }
+          }
+        ]
+      },
       "AccessToken": {
         "type": "object",
         "properties": {
