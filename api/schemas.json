@@ -1,0 +1,123 @@
+{
+  "components": {
+    "schemas": {
+      "BasicServerAnswer": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "ok"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "abc10"
+          },
+          "username": {
+            "type": "string",
+            "example": "theUser"
+          },
+          "email": {
+            "type": "string",
+            "example": "bibbob@email.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "12345"
+          }
+        },
+        "xml": {
+          "name": "user"
+        }
+      },
+      "Project": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "abc10"
+          },
+          "name": {
+            "type": "string",
+            "example": "theProject"
+          },
+          "webgraph": {
+            "type": "string",
+            "example": "graph data"
+          },
+          "dlq_sites": {
+            "type": "array",
+            "example": [
+              "site1",
+              "site2"
+            ]
+          },
+          "analysis_data": {
+            "type": "array",
+            "example": [
+              "data1",
+              "data2"
+            ]
+          }
+        }
+      },
+      "AccessToken": {
+        "type": "object",
+        "properties": {
+          "access": {
+            "type": "string",
+            "example": "tokentokentokentokentokentokentoken"
+          }
+        }
+      },
+      "LoginUser": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "bibbob@mail.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "12345"
+          }
+        }
+      },
+      "DeleteUser": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "bibbob@mail.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "12345"
+          }
+        }
+      },
+      "GetProject": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "abc10"
+          }
+        }
+      },
+      "DeleteProject": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "abc10"
+          }
+        }
+      }
+    }
+  }
+}
