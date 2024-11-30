@@ -1,4 +1,4 @@
-package moduleTests
+package integrationTests
 
 import "testing"
 
