@@ -49,7 +49,7 @@ func TestGetProjects(t *testing.T) {
 	expectedProjects := make([]models.Project, 0)
 	for i := 0; i < 10; i++ {
 		proj := models.Project{
-			OwnerID:  fmt.Sprintf("0"),
+			OwnerID:  "0",
 			WebGraph: "",
 			DlqSites: nil,
 		}
@@ -133,7 +133,8 @@ func TestUpdateLink(t *testing.T) {
 		return
 	}
 
-	db.UpdateLink("test-link", true)
+	err := db.UpdateLink("test-link", true)
+	assert.Equal(t, err, nil, "Updating link shouldn't return an error")
 	exists, err := db.CheckLink("test-link")
 	assert.Equal(t, exists, true, "Link should exist after update")
 	assert.Equal(t, err, nil, "Checking link shouldn't return an error")
