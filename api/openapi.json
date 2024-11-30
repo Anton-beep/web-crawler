@@ -17,7 +17,11 @@
   "tags": [
     {
       "name": "user",
-      "description": "User login/registration"
+      "description": "User logic"
+    },
+    {
+      "name": "project",
+      "description": "Project logic"
     }
   ],
   "paths": {
@@ -32,7 +36,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "./schemas.json#/components/schemas/User"
               }
             }
           }
@@ -43,26 +47,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AccessToken"
+                  "$ref": "./schemas.json#/components/schemas/AccessToken"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid input",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "error"
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "./responses.json#/components/responses/BasicError"
           }
         }
       }
@@ -78,7 +69,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "./schemas.json#/components/schemas/LoginUser"
               }
             }
           }
@@ -89,26 +80,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AccessToken"
+                  "$ref": "./schemas.json#/components/schemas/AccessToken"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid input",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "error"
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "./responses.json#/components/responses/BasicError"
           }
         }
       }
@@ -128,10 +106,47 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BasicServerAnswer"
+                  "$ref": "./schemas.json#/components/schemas/BasicServerAnswer"
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/user/getMe": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Gets user info by token",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "your access token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./responses.json#/components/responses/BasicError"
+          },
+          "401": {
+            "$ref": "./responses.json#/components/responses/Unauthorized"
           }
         }
       }
@@ -145,7 +160,7 @@
             "required": true,
             "schema": {
               "type": "string",
-                "example": "your access token"
+              "example": "your access token"
             }
           }
         ],
@@ -158,144 +173,220 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "./schemas.json#/components/schemas/User"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BasicServerAnswer"
-                }
-              }
-            }
+            "$ref": "./responses.json#/components/responses/BasicSuccess"
           },
           "400": {
-            "description": "Invalid input",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "error"
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "./responses.json#/components/responses/BasicError"
           },
           "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "error"
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "./responses.json#/components/responses/Unauthorized"
           }
         }
       }
-    }
-  },
-  "components": {
-    "schemas": {
-      "BasicServerAnswer": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "example": "ok"
-          }
-        }
-      },
-      "User": {
-        "allOf": [
+    },
+    "/user/delete": {
+      "delete": {
+        "parameters": [
           {
-            "$ref": "#/components/schemas/BasicServerAnswer"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string",
-                "example": "abc10"
-              },
-              "username": {
-                "type": "string",
-                "example": "theUser"
-              },
-              "email": {
-                "type": "string",
-                "example": "bibbob@email.com"
-              },
-              "password": {
-                "type": "string",
-                "example": "12345"
-              }
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "your access token"
             }
           }
         ],
-        "xml": {
-          "name": "user"
-        }
-      },
-      "Project": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/BasicServerAnswer"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string",
-                "example": "abc10"
-              },
-              "name": {
-                "type": "string",
-                "example": "theProject"
-              },
-              "webgraph": {
-                "type": "string",
-                "example": "graph data"
-              },
-              "dlq_sites": {
-                "type": "array",
-                "example": [
-                    "site1",
-                    "site2"
-                ]
-              },
-              "analysis_data": {
-                "type": "array",
-                "example": [
-                    "data1",
-                    "data2"
-                ]
+        "tags": [
+          "user"
+        ],
+        "summary": "Delete user",
+        "requestBody": {
+          "description": "User to delete",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas.json#/components/schemas/DeleteUser"
               }
             }
           }
-        ]
-      },
-      "AccessToken": {
-        "type": "object",
-        "properties": {
-          "access": {
-            "type": "string",
-            "example": "tokentokentokentokentokentokentoken"
+        },
+        "responses": {
+          "200": {
+            "$ref": "./responses.json#/components/responses/BasicSuccess"
+          },
+          "400": {
+            "$ref": "./responses.json#/components/responses/BasicError"
+          },
+          "401": {
+            "$ref": "./responses.json#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/project/create": {
+      "post": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "your access token"
+            }
+          }
+        ],
+        "tags": [
+          "project"
+        ],
+        "summary": "Create a new project",
+        "requestBody": {
+          "description": "Project to create",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas.json#/components/schemas/Project"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "./responses.json#/components/responses/BasicSuccess"
+          },
+          "400": {
+            "$ref": "./responses.json#/components/responses/BasicError"
+          },
+          "401": {
+            "$ref": "./responses.json#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/project/get": {
+      "post": {
+        "tags": [
+          "project"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "your access token"
+            }
+          }
+        ],
+        "summary": "Get project",
+        "requestBody": {
+          "description": "Get project",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas.json#/components/schemas/GetProject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "./responses.json#/components/responses/BasicSuccess"
+          },
+          "400": {
+            "$ref": "./responses.json#/components/responses/BasicError"
+          },
+          "401": {
+            "$ref": "./responses.json#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/project/edit": {
+      "put": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "your access token"
+            }
+          }
+        ],
+        "tags": [
+          "project"
+        ],
+        "summary": "Edit project",
+        "requestBody": {
+          "description": "Project to edit",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas.json#/components/schemas/Project"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "./responses.json#/components/responses/BasicSuccess"
+          },
+          "400": {
+            "$ref": "./responses.json#/components/responses/BasicError"
+          },
+          "401": {
+            "$ref": "./responses.json#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/project/delete": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "your access token"
+            }
+          }
+        ],
+        "tags": [
+          "project"
+        ],
+        "summary": "Edit project",
+        "requestBody": {
+          "description": "Project to delete",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas.json#/components/schemas/DeleteProject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "./responses.json#/components/responses/BasicSuccess"
+          },
+          "400": {
+            "$ref": "./responses.json#/components/responses/BasicError"
+          },
+          "401": {
+            "$ref": "./responses.json#/components/responses/Unauthorized"
           }
         }
       }
