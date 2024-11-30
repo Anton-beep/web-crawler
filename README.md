@@ -2,7 +2,7 @@
 
 To run a project in production mode
 
-- Set up environment variables in the `configs/Docker.env.template` file
+- Set up environment variables in the `configs/Docker.env` file use `configs/Docker.env.template` for this
 - Install [Docker](https://www.docker.com)
 - Run the command
 ```bash
@@ -14,7 +14,7 @@ docker compose -f .\deployments\docker-compose.yml up
 ## Pre-setting
 
 To run a project in development mode
-- Set up environment variables in the `configs/.env.template` file, copy it to `configs/.env`
+- Set up environment variables in the `configs/.env` use `configs/.env.template` for this.
 - Install [Docker](https://www.docker.com)
 - Run the command
 ```bash
@@ -89,34 +89,34 @@ golangci-lint run -c configs/.golangci.yml
 
 ### Unit tests
 
-Чтобы запустить тестирование unit tests, запустите команду
+To run unit tests, run the command
 ```bash
 go test -cover -v ./...
 ```
-В консольле буду выведены результаты тестиования, а также процент покрытия тестов
+The console will display the testing results, as well as the percentage of test coverage
 
 ### Integration tests
 
-Чтобы запустить интеграционные тесты,
-- Настройте переменные окружения в файле `configs/.env.template`, скопируйте его в `configs/.env`
-- Установите значение переменной `IS_RAN_IN_DOCKER` на `true`.
-- Установите [Docker](https://www.docker.com)
-- Запустите команду
+To run integration tests,
+- Set up environment variables in the `configs/.env`, use `configs/.env.template` for this
+- Set the value of the `RUN_INTEGRATION_TESTS` variable to `true`
+- Install [Docker](https://www.docker.com)
+- Run the command
 ```bash
 docker compose -f .\deployments\docker-compose-dev.yml up
 ```
-В этом режиме будут развёрнуты все сторонние контейнеры. Порты буду прокинуты на localhost.
-Далее запустите команду
+In this mode, all third-party containers will be deployed. The ports will be forwarded to localhost.
+Next run the command
 ```bash
 go test -cover -v ./...
 ```
 
-### Подробное описание покрытия
+### Detailed description of coverage
 
-Чтобы получить развёрнутое описание покрытия тестов, запустите команды
+To get a detailed description of test coverage, run the commands
 ```bash
 go test -v -coverprofile cover.out ./...
 go tool cover -html cover.out -o cover.html 
 ```
-Откройте файл `cover.html`. В нём будут приведены фрагменты кода, покрытого и не покрытого тестами.
-Данный метод работает как с unit tests, так и с интеграционными тестами.
+Open the `cover.html` file. It will contain fragments of code covered and not covered by tests.
+This method works with both unit tests and integration tests.

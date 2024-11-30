@@ -25,10 +25,10 @@ type KafkaConfig struct {
 }
 
 type Config struct {
-	Postgres      PostgresConfig
-	Redis         RedisConfig
-	Kafka         KafkaConfig
-	IsRanInDocker bool `env:"IS_RAN_IN_DOCKER" env-default:"false"`
+	Postgres            PostgresConfig
+	Redis               RedisConfig
+	Kafka               KafkaConfig
+	RunIntegrationTests bool `env:"RUN_INTEGRATION_TESTS" env-default:"false"`
 }
 
 func NewConfig() *Config {

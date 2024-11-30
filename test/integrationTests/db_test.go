@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestCreateAndRetrieveProject(t *testing.T) {
-	if !cfg.IsRanInDocker {
+	if !cfg.RunIntegrationTests {
 		return
 	}
 
@@ -42,7 +42,7 @@ func TestCreateAndRetrieveProject(t *testing.T) {
 }
 
 func TestGetProjects(t *testing.T) {
-	if !cfg.IsRanInDocker {
+	if !cfg.RunIntegrationTests {
 		return
 	}
 
@@ -74,7 +74,7 @@ func TestGetProjects(t *testing.T) {
 }
 
 func TestDeleteProject(t *testing.T) {
-	if !cfg.IsRanInDocker {
+	if !cfg.RunIntegrationTests {
 		return
 	}
 
@@ -92,7 +92,7 @@ func TestDeleteProject(t *testing.T) {
 }
 
 func TestDeleteNonExistentProject(t *testing.T) {
-	if !cfg.IsRanInDocker {
+	if !cfg.RunIntegrationTests {
 		return
 	}
 
@@ -101,7 +101,7 @@ func TestDeleteNonExistentProject(t *testing.T) {
 }
 
 func TestGetNonExistentProjectTemporaryData(t *testing.T) {
-	if !cfg.IsRanInDocker {
+	if !cfg.RunIntegrationTests {
 		return
 	}
 
@@ -110,7 +110,7 @@ func TestGetNonExistentProjectTemporaryData(t *testing.T) {
 }
 
 func TestDeleteNonExistentProjectTemporaryData(t *testing.T) {
-	if !cfg.IsRanInDocker {
+	if !cfg.RunIntegrationTests {
 		return
 	}
 
@@ -119,7 +119,7 @@ func TestDeleteNonExistentProjectTemporaryData(t *testing.T) {
 }
 
 func TestCheckLink(t *testing.T) {
-	if !cfg.IsRanInDocker {
+	if !cfg.RunIntegrationTests {
 		return
 	}
 
@@ -129,7 +129,7 @@ func TestCheckLink(t *testing.T) {
 }
 
 func TestUpdateLink(t *testing.T) {
-	if !cfg.IsRanInDocker {
+	if !cfg.RunIntegrationTests {
 		return
 	}
 
@@ -140,7 +140,7 @@ func TestUpdateLink(t *testing.T) {
 }
 
 func TestCreateAndRetrieveProjectTemporaryData(t *testing.T) {
-	if !cfg.IsRanInDocker {
+	if !cfg.RunIntegrationTests {
 		return
 	}
 
@@ -154,7 +154,7 @@ func TestCreateAndRetrieveProjectTemporaryData(t *testing.T) {
 }
 
 func TestDeleteProjectTemporaryData(t *testing.T) {
-	if !cfg.IsRanInDocker {
+	if !cfg.RunIntegrationTests {
 		return
 	}
 
