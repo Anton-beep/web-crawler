@@ -120,3 +120,17 @@ go tool cover -html cover.out -o cover.html
 ```
 Open the `cover.html` file. It will contain fragments of code covered and not covered by tests.
 This method works with both unit tests and integration tests.
+
+# Documentation
+
+## API
+
+To build documentation install redoc:
+```shell
+npm install -g redoc-cli
+```
+
+And then generate documentation:
+```shell
+redoc-cli bundle -o docs/api/apiDocumentation.html api/openapi.json
+```
