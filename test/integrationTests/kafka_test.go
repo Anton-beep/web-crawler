@@ -2,26 +2,6 @@ package integrationTests
 
 import "testing"
 
-type Message struct {
-	topic     string
-	partition string
-	message   map[string]string
-}
-
-type SitesKafka interface {
-	AddSiteToParse(link string, projectId int) error
-	CheckSitesToParse(link string, projectId int) error
-}
-
-type RegistrationKafka interface {
-	LoginUser(user User) error
-	RegisterUser(user User) error
-	IsFinished(user User) error
-	GetLoginRequest() error
-	GetRegisterRequest() error
-	FinishedLoginOrRegister(User, error) error
-}
-
 func TestAddSiteToParse(t *testing.T) {
 	err := addSiteToParse("link", 1)
 	if err != nil {
