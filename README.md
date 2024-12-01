@@ -21,7 +21,10 @@ To run a project in development mode
 docker compose -f deployments/docker-compose-dev.yml up --build
 ```
 In this mode, all third-party containers will be deployed. The ports will be forwarded to localhost.
+
 ## How to start services
+
+### Backend
 
 - Place the executable file at `cmd/<your_service>/<file_name>.go`
 - Follow this path
@@ -31,6 +34,13 @@ cd cmd/<your_service>
 - Run the executable file
 ```bash
 go run <file_name>.go
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm run dev
 ```
 
 ## How to write tests
@@ -80,9 +90,19 @@ Follow this [standard structure](https://github.com/golang-standards/project-lay
 
 ## Linter
 
+## Backend
+
 To run the linter, run the command (install [golangci-lint](https://golangci-lint.run/welcome/install/)):
 ```shell
 golangci-lint run -c configs/.golangci.yml
+```
+
+## Frontend
+
+To run the linter, run the command:
+```shell
+cd frontend
+npm run lint
 ```
 
 
@@ -90,11 +110,21 @@ golangci-lint run -c configs/.golangci.yml
 
 ### Unit tests
 
+#### Backend
+
 To run unit tests, run the command
 ```bash
 go test -cover -v ./...
 ```
 The console will display the testing results, as well as the percentage of test coverage
+
+#### Frontend
+
+To run unit tests, run the command
+```bash
+cd frontend
+npm run test
+```
 
 ### Integration tests
 

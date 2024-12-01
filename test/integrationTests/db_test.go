@@ -124,7 +124,7 @@ func TestCheckLink(t *testing.T) {
 	}
 
 	status, err := db.CheckLink("non-existent-link")
-	assert.Equal(t, status, false, "Link shouldn't be checked")
+	assert.Equal(t, status, false, "GraphLink shouldn't be checked")
 	assert.Equal(t, err, nil, "Checking non-existent link shouldn't return an error")
 }
 
@@ -136,7 +136,7 @@ func TestUpdateLink(t *testing.T) {
 	err := db.UpdateLink("test-link", true)
 	assert.Equal(t, err, nil, "Updating link shouldn't return an error")
 	exists, err := db.CheckLink("test-link")
-	assert.Equal(t, exists, true, "Link should exist after update")
+	assert.Equal(t, exists, true, "GraphLink should exist after update")
 	assert.Equal(t, err, nil, "Checking link shouldn't return an error")
 }
 
