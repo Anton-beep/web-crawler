@@ -10,7 +10,7 @@
               "properties": {
                 "message": {
                   "type": "string",
-                  "example": "ok"
+                  "example": "error"
                 }
               }
             }

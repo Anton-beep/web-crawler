@@ -253,14 +253,41 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "./schemas.json#/components/schemas/Project"
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "theProject"
+                  },
+                  "start_url": {
+                    "type": "string",
+                    "example": "http://example.com"
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "$ref": "./responses.json#/components/responses/BasicSuccess"
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "example": "abc10"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "ok"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "./responses.json#/components/responses/BasicError"
@@ -272,7 +299,7 @@
       }
     },
     "/project/get": {
-      "post": {
+      "get": {
         "tags": [
           "project"
         ],
@@ -300,7 +327,14 @@
         },
         "responses": {
           "200": {
-            "$ref": "./responses.json#/components/responses/BasicSuccess"
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/components/schemas/Project"
+                }
+              }
+            }
           },
           "400": {
             "$ref": "./responses.json#/components/responses/BasicError"
@@ -311,8 +345,11 @@
         }
       }
     },
-    "/project/edit": {
-      "put": {
+    "/project/getAllShort": {
+      "get": {
+        "tags": [
+          "project"
+        ],
         "parameters": [
           {
             "in": "header",
@@ -324,23 +361,20 @@
             }
           }
         ],
-        "tags": [
-          "project"
-        ],
-        "summary": "Edit project",
-        "requestBody": {
-          "description": "Project to edit",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "./schemas.json#/components/schemas/Project"
-              }
-            }
-          }
-        },
+        "summary": "Get names and ids of projects user has access to",
         "responses": {
           "200": {
-            "$ref": "./responses.json#/components/responses/BasicSuccess"
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "./schemas.json#/components/schemas/ProjectShort"
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "./responses.json#/components/responses/BasicError"
@@ -367,7 +401,7 @@
         "tags": [
           "project"
         ],
-        "summary": "Edit project",
+        "summary": "Delete project",
         "requestBody": {
           "description": "Project to delete",
           "content": {

@@ -28,7 +28,12 @@ type Config struct {
 	Postgres            PostgresConfig
 	Redis               RedisConfig
 	Kafka               KafkaConfig
+	Receiver            ReceiverConfig
 	RunIntegrationTests bool `env:"RUN_INTEGRATION_TESTS" env-default:"false"`
+}
+
+type ReceiverConfig struct {
+	Port int `env:"RECEIVER_PORT" env-default:"8080"`
 }
 
 func NewConfig() *Config {

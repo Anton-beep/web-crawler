@@ -1,4 +1,4 @@
-package userService
+package main
 
 func main() {
 }

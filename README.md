@@ -80,6 +80,7 @@ Follow this [standard structure](https://github.com/golang-standards/project-lay
 
 ## Linter
 
+To run the linter, run the command (install [golangci-lint](https://golangci-lint.run/welcome/install/)):
 ```shell
 golangci-lint run -c configs/.golangci.yml
 ```
@@ -125,12 +126,7 @@ This method works with both unit tests and integration tests.
 
 ## API
 
-To build documentation install redoc:
+To build documentation install redoc (don't forget to [install npm](https://nodejs.org/en/download/package-manager)):
 ```shell
-npm install -g redoc-cli
-```
-
-And then generate documentation:
-```shell
-redoc-cli bundle -o docs/api/apiDocumentation.html api/openapi.json
+npx @redocly/cli build-docs api/openapi.json -o docs/api/apiDocumentation.html
 ```
