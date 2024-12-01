@@ -130,3 +130,5 @@ To build documentation install redoc (don't forget to [install npm](https://node
 ```shell
 npx @redocly/cli build-docs api/openapi.json -o docs/api/apiDocumentation.html
 ```
+
+Documentation is now available at `docs/api/apiDocumentation.html`
