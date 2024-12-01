@@ -1,4 +1,4 @@
-package brocker
+package broker
 
 type SitesKafka struct {
 }

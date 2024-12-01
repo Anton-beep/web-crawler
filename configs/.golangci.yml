@@ -1,5 +1,6 @@
 # https://golangci-lint.run/usage/configuration/
 
-issues:
-  exclude-dirs:
+run:
+  skip-dirs:
     - frontend
+    - deployments

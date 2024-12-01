@@ -110,3 +110,5 @@ redis_data
 frontend/node_modules
 frontend/build
 frontend/coverage
+
+cover.html
