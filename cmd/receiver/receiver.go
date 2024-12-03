@@ -1,8 +1,8 @@
 package main
 
 import (
-	"web-crauler/internal/config"
-	"web-crauler/internal/services/receiver"
+	"web-crawler/internal/config"
+	"web-crawler/internal/services/receiver"
 )
 
 func main() {

@@ -1,9 +1,12 @@
 #!/bin/sh
 
 # Запускаем тесты с покрытием и сохраняем результат в файл
-go test -count=1 -coverprofile=coverage.out ./...
+echo "Запуск тестов..."
+if ! go test -count=1 -coverprofile=coverage.out ./...; then
+  echo "Ошибка: один или несколько тестов завершились с ошибкой"
+  exit 1
+fi
 
-# Проверяем, создался ли файл с покрытием
 if [ ! -f coverage.out ]; then
   echo "Ошибка: файл coverage.out не создан"
   exit 1
@@ -25,4 +28,4 @@ if [ "$coverage_int" -lt 60 ]; then
   exit 1
 fi
 
-echo "Покрытие достаточное ($coverage%)"
+echo "Все тесты пройдены успешно. Покрытие достаточное ($coverage%)"
