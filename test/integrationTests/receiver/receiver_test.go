@@ -1,4 +1,4 @@
-package integrationTests
+package receiver
 
 import (
 	"encoding/json"
@@ -6,12 +6,28 @@ import (
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
-	"web-crauler/internal/services/receiver"
-	"web-crauler/internal/utils"
+	"web-crawler/internal/config"
+	"web-crawler/internal/services/receiver"
+	"web-crawler/internal/utils"
 )
 
+var (
+	cfg *config.Config
+)
+
+func TestMain(m *testing.M) {
+	cfg = config.NewConfig("../../../configs/.env")
+	code := m.Run()
+	os.Exit(code)
+}
+
 func TestPing(t *testing.T) {
+	if !cfg.RunIntegrationTests {
+		return
+	}
+
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 	rec := httptest.NewRecorder()
@@ -24,8 +40,12 @@ func TestPing(t *testing.T) {
 }
 
 func TestCreateProject(t *testing.T) {
+	if !cfg.RunIntegrationTests {
+		return
+	}
+
 	e := echo.New()
-	r := receiver.New(1234)
+	r := receiver.New(1234, "../../../configs/.env")
 
 	req := httptest.NewRequest(
 		http.MethodPost,
@@ -45,8 +65,12 @@ func TestCreateProject(t *testing.T) {
 }
 
 func TestGetProject(t *testing.T) {
+	if !cfg.RunIntegrationTests {
+		return
+	}
+
 	e := echo.New()
-	r := receiver.New(1234)
+	r := receiver.New(1234, "../../../configs/.env")
 
 	// Create
 	createReq := httptest.NewRequest(
@@ -86,8 +110,12 @@ func TestGetProject(t *testing.T) {
 }
 
 func TestDeleteProject(t *testing.T) {
+	if !cfg.RunIntegrationTests {
+		return
+	}
+
 	e := echo.New()
-	r := receiver.New(1234)
+	r := receiver.New(1234, "../../../configs/.env")
 
 	// Create project
 	createReq := httptest.NewRequest(

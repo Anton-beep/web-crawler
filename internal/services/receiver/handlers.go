@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"strconv"
-	"web-crauler/internal/models"
+	"web-crawler/internal/models"
 )
 
 type errMsg struct {
@@ -38,7 +38,7 @@ func (r *Service) CreateProject(c echo.Context) error {
 		//StartUrl: in.StartUrl,
 	}
 
-	id, err := r.db.CreateProject(prj)
+	id, err := r.db.CreateProject(&prj)
 	if err != nil {
 		zap.S().Errorf("error while creating project: %s", err)
 		return echo.ErrInternalServerError

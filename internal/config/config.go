@@ -2,43 +2,35 @@ package config
 
 import (
 	"github.com/ilyakaznacheev/cleanenv"
+	"web-crawler/internal/connection"
 )
-
-// PostgresConfig TODO move the configuration structure from this package to the postgres connection package
-type PostgresConfig struct {
-	Host     string `env:"POSTGRES_HOST" env-default:"localhost"`
-	Port     int    `env:"POSTGRES_PORT" env-default:"5432"`
-	User     string `env:"POSTGRES_USER" env-default:"root"`
-	Password string `env:"POSTGRES_PASSWORD" env-default:"123"`
-	DB       string `env:"POSTGRES_DB" env-default:"root"`
-}
-
-// RedisConfig TODO move the configuration structure from this package to the redis connection package
-type RedisConfig struct {
-	Host string `env:"REDIS_HOST" env-default:"localhost"`
-	Port int    `env:"REDIS_PORT" env-default:"6379"`
-}
 
 type KafkaConfig struct {
 	Listener string `env:"KAFKA_ADVERTISED_LISTENERS" env-default:"localhost"`
 	Host     string `env:"HOST_KAFKA" env-default:"localhost:9092"`
 }
 
-type Config struct {
-	Postgres            PostgresConfig
-	Redis               RedisConfig
-	Kafka               KafkaConfig
-	Receiver            ReceiverConfig
-	RunIntegrationTests bool `env:"RUN_INTEGRATION_TESTS" env-default:"false"`
-}
-
 type ReceiverConfig struct {
 	Port int `env:"RECEIVER_PORT" env-default:"8080"`
 }
 
-func NewConfig() *Config {
+type Config struct {
+	Postgres            connection.PostgresConfig
+	Redis               connection.RedisConfig
+	Kafka               KafkaConfig
+	Receiver            ReceiverConfig
+	RunIntegrationTests bool `env:"RUN_INTEGRATION_TESTS" env-default:"false"`
+	Debug               bool `env:"DEBUG" env-default:"true"`
+}
+
+func NewConfig(args ...string) *Config {
+	path := "configs/.env"
+	if len(args) > 0 {
+		path = args[0]
+	}
+
 	var cfg Config
-	err := cleanenv.ReadConfig("../../configs/.env", &cfg)
+	err := cleanenv.ReadConfig(path, &cfg)
 	if err != nil {
 		return nil
 	}

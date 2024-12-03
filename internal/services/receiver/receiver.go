@@ -4,9 +4,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"strconv"
-	"web-crauler/internal/broker"
-	"web-crauler/internal/models"
-	"web-crauler/internal/repository"
+	"web-crawler/internal/broker"
+	"web-crawler/internal/config"
+	"web-crawler/internal/models"
+	"web-crawler/internal/repository"
 )
 
 type Service struct {
@@ -15,10 +16,11 @@ type Service struct {
 	kafka broker.SitesKafka
 }
 
-func New(port int) *Service {
+func New(port int, cfgPath ...string) *Service {
+	cfg := config.NewConfig(cfgPath...)
 	return &Service{
 		port:  port,
-		db:    repository.NewDB(),
+		db:    repository.NewDB(cfg),
 		kafka: broker.SitesKafka{},
 	}
 }

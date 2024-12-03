@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"web-crauler/internal/services/receiver"
+	"web-crawler/internal/services/receiver"
 )
 
 func TestPing(t *testing.T) {
