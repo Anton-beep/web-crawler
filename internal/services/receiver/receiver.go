@@ -30,7 +30,8 @@ func (r *Service) Start() {
 
 	e.GET("/ping", Pong)
 	e.POST("/project/create", r.CreateProject)
-	e.POST("/project/get", r.GetProject)
+	e.POST("/project/get/:id", r.GetProject)
+	e.DELETE("/project/delete/:id", r.DeleteProject)
 
 	err := e.Start(":" + strconv.Itoa(r.port))
 	if err != nil {
