@@ -50,7 +50,7 @@ class Api {
     }
 
     public getAllProjectsShort() {
-        return this.axiosInstance.get('/project/getAllShort', );
+        return this.axiosInstance.get('/project/getAllShort');
     }
 
     public deleteProject(id: string) {

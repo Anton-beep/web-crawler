@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import ForceGraph3D from '3d-force-graph';
 import SpriteText from 'three-spritetext';
-import { GraphData } from '../../types/GraphData';
+import { GraphData } from '@/types/GraphData.ts';
 import './SitesGraph.css'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import getDomainFromUrl from "../../utils/getDomainFromUrl.ts";
@@ -26,7 +26,7 @@ function ForceGraph({width ,height, backgroundCol, data} : {width: number, heigh
                 .linkDirectionalParticleSpeed(0.003);
 
             Graph.nodeThreeObject((node: NodeObject<number>) => {
-                const sprite = new SpriteText(node.id);
+                const sprite = new SpriteText(node.id) as any;
                 sprite.material.depthWrite = false;
                 sprite.color = node.color;
                 sprite.textHeight = 8;
@@ -34,8 +34,8 @@ function ForceGraph({width ,height, backgroundCol, data} : {width: number, heigh
             });
 
             const bloomPass = new UnrealBloomPass();
-            bloomPass.strength = 2;
-            bloomPass.radius = 1;
+            bloomPass.strength = 1.4;
+            bloomPass.radius = 0;
             bloomPass.threshold = 0;
             Graph.postProcessingComposer().addPass(bloomPass);
 
@@ -43,7 +43,7 @@ function ForceGraph({width ,height, backgroundCol, data} : {width: number, heigh
                 Graph._destructor(); // Clean up on unmount
             };
         }
-    }, [data, height, width]);
+    }, [data, height, width, backgroundCol]);
 
     return <div ref={graphRef} />;
 };

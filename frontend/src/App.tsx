@@ -1,5 +1,6 @@
 import ForceGraph from './components/SitesGraph/SitesGraph';
 import {GraphData} from "./types/GraphData.ts";
+import Header from "./components/Header/Header";
 
 function App() {
     const bib: GraphData = {
@@ -23,11 +24,17 @@ function App() {
     }
 
     return (
-        <div className="App">
+        <>
             <div>
-                <ForceGraph width={1000} data={bib} backgroundCol={'#020202'} height={1000}/>
+                <Header/>
+
+                <div className="App">
+                    <div>
+                        <ForceGraph width={1000} data={bib} backgroundCol={'#020202'} height={1000}/>
+                    </div>
+                </div>
             </div>
-        </div>
+        </>
     );
 }
 
