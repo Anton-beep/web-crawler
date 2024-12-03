@@ -25,7 +25,7 @@ function App() {
     return (
         <div className="App">
             <div>
-                <ForceGraph width={1000} data={bib} height={1000}/>
+                <ForceGraph width={1000} data={bib} backgroundCol={'#020202'} height={1000}/>
             </div>
         </div>
     );

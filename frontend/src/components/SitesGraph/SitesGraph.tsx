@@ -8,13 +8,13 @@ import getDomainFromUrl from "../../utils/getDomainFromUrl.ts";
 import {NodeObject} from "three/src/nodes/tsl/TSLCore";
 
 
-function ForceGraph({width ,height, data} : {width: number, height: number, data: GraphData}) {
+function ForceGraph({width ,height, backgroundCol, data} : {width: number, height: number, backgroundCol: string, data: GraphData}) {
     const graphRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         if (graphRef.current) {
             const Graph = ForceGraph3D()(graphRef.current)
-                .backgroundColor('#020202')
+                .backgroundColor(backgroundCol)
                 .graphData(data)
                 .nodeLabel((node: NodeObject<number>) => getDomainFromUrl(node.id))
                 .linkWidth(1)

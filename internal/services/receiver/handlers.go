@@ -55,18 +55,10 @@ func (r *Service) CreateProject(c echo.Context) error {
 	return c.JSON(http.StatusOK, outCreate{Id: id})
 }
 
-type inGet struct {
-	Id string `json:"id"`
-}
-
 func (r *Service) GetProject(c echo.Context) error {
-	var in inGet
+	id := c.Param("id")
 
-	if err := c.Bind(&in); err != nil {
-		return c.JSON(http.StatusBadRequest, errMsg{Message: err.Error()})
-	}
-
-	prj, err := r.db.GetProject(in.Id)
+	prj, err := r.db.GetProject(id)
 
 	if errors.Is(err, models.DataBaseNotFound) {
 		return c.JSON(http.StatusNotFound, errMsg{Message: err.Error()})
@@ -85,22 +77,14 @@ func (r *Service) GetAllShort(c echo.Context) error {
 	panic("Implement GetShortProjectsByUserId in DataBase !!!")
 }
 
-type inDeleteProject struct {
-	Id string `json:"id"`
-}
-
 type outDeleteProject struct {
 	Message string `json:"message"`
 }
 
 func (r *Service) DeleteProject(c echo.Context) error {
-	var in inDeleteProject
+	id := c.Param("id")
 
-	if err := c.Bind(&in); err != nil {
-		return c.JSON(http.StatusBadRequest, errMsg{Message: err.Error()})
-	}
-
-	err := r.db.DeleteProject(in.Id)
+	err := r.db.DeleteProject(id)
 
 	if errors.Is(err, models.DataBaseNotFound) {
 		return c.JSON(http.StatusNotFound, errMsg{Message: err.Error()})
