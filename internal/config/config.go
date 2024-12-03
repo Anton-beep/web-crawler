@@ -6,8 +6,10 @@ import (
 )
 
 type KafkaConfig struct {
-	Listener string `env:"KAFKA_ADVERTISED_LISTENERS" env-default:"localhost"`
-	Host     string `env:"HOST_KAFKA" env-default:"localhost:9092"`
+	Topic        string `env:"TOPIC_NAME"`
+	SitesGroupID string `env:"SITES_GROUP_ID"`
+	Address      string `env:"KAFKA_ADDRESS"`
+	Partition    int    `env:"KAFKA_PARTITION"`
 }
 
 type ReceiverConfig struct {
