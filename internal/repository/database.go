@@ -23,6 +23,10 @@ type DataBase struct {
 }
 
 func (d DataBase) checkIfIdExists(id string) error {
+	if uuid.Validate(id) != nil {
+		return models.DataBaseWrongID
+	}
+
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	checkQuery := psql.Select("id").From("projects").Where(sq.Eq{"id": id})
@@ -274,6 +278,7 @@ func (d DataBase) UpdateLink(slag string, status bool) error {
 }
 
 func NewDB(cfg *config.Config) models.DataBase {
+	// 🤓🤓🤓
 	postgresConnect, err := connection.NewPostgresConnect(cfg.Postgres)
 	if err != nil {
 		zap.S().Fatal(fmt.Errorf("database wan't created due to error in postgres connect: %w", err))
@@ -283,7 +288,7 @@ func NewDB(cfg *config.Config) models.DataBase {
 		zap.S().Fatal(fmt.Errorf("database wan't created due to error in redis connect: %w", err))
 	}
 	zap.S().Info("Database created")
-	return DataBase{
+	return &DataBase{
 		postgres: postgresConnect,
 		redis:    redisConnect,
 	}

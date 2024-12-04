@@ -46,6 +46,22 @@ func TestCreateProject(t *testing.T) {
 	assert.NoError(t, r.CreateProject(c))
 
 	assert.Equal(t, http.StatusOK, rec.Code)
+
+	// wrong create data
+
+	req = httptest.NewRequest(
+		http.MethodPost,
+		"/project/create",
+		utils.GetReaderFromStruct(struct {
+			Bib string `json:"bib"`
+		}{"bib"}),
+	)
+	req.Header.Set("Content-Type", "application/json; charset=utf8")
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req, rec)
+
+	assert.NoError(t, r.CreateProject(c))
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
 }
 
 func TestGetProject(t *testing.T) {
@@ -80,17 +96,33 @@ func TestGetProject(t *testing.T) {
 	// Get project
 	getReq := httptest.NewRequest(
 		http.MethodGet,
-		"/project/get",
-		utils.GetReaderFromStruct(struct {
-			Id string `json:"id"`
-		}{outCreate.Id}),
+		"/project/get/",
+		nil,
 	)
 	getReq.Header.Set("Content-Type", "application/json; charset=utf8")
 	getRec := httptest.NewRecorder()
 	getCtx := e.NewContext(getReq, getRec)
+	getCtx.SetParamNames("id")
+	getCtx.SetParamValues(outCreate.Id)
 
 	assert.NoError(t, r.GetProject(getCtx))
 	assert.Equal(t, http.StatusOK, getRec.Code)
+	assert.Contains(t, getRec.Body.String(), outCreate.Id)
+
+	// Get project with wrong id
+	getReq2 := httptest.NewRequest(
+		http.MethodGet,
+		"/project/get/",
+		nil,
+	)
+	getReq2.Header.Set("Content-Type", "application/json; charset=utf8")
+	getRec2 := httptest.NewRecorder()
+	getCtx2 := e.NewContext(getReq2, getRec2)
+	getCtx2.SetParamNames("id")
+	getCtx2.SetParamValues("wrongId")
+
+	assert.NoError(t, r.GetProject(getCtx2))
+	assert.Equal(t, http.StatusBadRequest, getRec2.Code)
 }
 
 func TestDeleteProject(t *testing.T) {
@@ -126,12 +158,12 @@ func TestDeleteProject(t *testing.T) {
 	deleteReq := httptest.NewRequest(
 		http.MethodDelete,
 		"/project/delete",
-		utils.GetReaderFromStruct(struct {
-			Id string `json:"id"`
-		}{outCreate.Id}),
+		nil,
 	)
 	deleteRec := httptest.NewRecorder()
 	deleteCtx := e.NewContext(deleteReq, deleteRec)
+	deleteCtx.SetParamNames("id")
+	deleteCtx.SetParamValues(outCreate.Id)
 
 	assert.NoError(t, r.DeleteProject(deleteCtx))
 	assert.Equal(t, http.StatusOK, deleteRec.Code)
@@ -140,15 +172,15 @@ func TestDeleteProject(t *testing.T) {
 	getReq := httptest.NewRequest(
 		http.MethodGet,
 		"/project/get",
-		utils.GetReaderFromStruct(struct {
-			Id string `json:"id"`
-		}{outCreate.Id}),
+		nil,
 	)
 	getRec := httptest.NewRecorder()
 	getCtx := e.NewContext(getReq, getRec)
+	getCtx.SetParamNames("id")
+	getCtx.SetParamValues(outCreate.Id)
 
 	assert.NoError(t, r.GetProject(getCtx))
-	assert.Equal(t, http.StatusBadRequest, getRec.Code)
+	assert.Equal(t, http.StatusNotFound, getRec.Code)
 }
 
 func TestGetAllShort(t *testing.T) {
@@ -196,6 +228,11 @@ func TestGetAllShort(t *testing.T) {
 	assert.NoError(t, r.CreateProject(createCtx2))
 	assert.Equal(t, http.StatusOK, createRec2.Code)
 
+	var outCreate2 struct {
+		Id string `json:"id"`
+	}
+	assert.NoError(t, json.Unmarshal(createRec2.Body.Bytes(), &outCreate2))
+
 	// Get all short
 	getAllShortReq := httptest.NewRequest(
 		http.MethodGet,
@@ -210,4 +247,6 @@ func TestGetAllShort(t *testing.T) {
 
 	assert.Contains(t, getAllShortRec.Body.String(), "newProject")
 	assert.Contains(t, getAllShortRec.Body.String(), "newProject2")
+	assert.Contains(t, getAllShortRec.Body.String(), outCreate.Id)
+	assert.Contains(t, getAllShortRec.Body.String(), outCreate2.Id)
 }

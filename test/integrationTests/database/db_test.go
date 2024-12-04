@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+	"time"
 	"web-crawler/internal/config"
 	"web-crawler/internal/models"
 	"web-crawler/internal/repository"
@@ -347,7 +348,7 @@ func TestUpdateLink(t *testing.T) {
 		return
 	}
 
-	link := "link"
+	link := "linkUpdateLink" + time.Now().String()
 
 	visited, err := db.CheckLink(link)
 	assert.Equal(t, err, nil, "checking link should not return an error")
@@ -375,7 +376,7 @@ func TestCheckLink(t *testing.T) {
 		return
 	}
 
-	link := "link"
+	link := "linkCheckLink" + time.Now().String()
 
 	visited, err := db.CheckLink(link)
 	assert.Equal(t, err, nil, "checking link should not return an error")

@@ -24,7 +24,7 @@ func TestKafkaSingle(t *testing.T) {
 	if !cfg.RunIntegrationTests {
 		return
 	}
-	siteConf := *broker.New("../../../configs/.env")
+	siteConf := *broker.New(cfg)
 	err := siteConf.AddSiteToParse("link", "1", 0)
 	if err != nil {
 		t.Errorf("Error: %v", err)
@@ -42,7 +42,7 @@ func TestKafkaMultiple(t *testing.T) {
 	if !cfg.RunIntegrationTests {
 		return
 	}
-	siteConf := *broker.New("../../../configs/.env")
+	siteConf := *broker.New(cfg)
 	for j := 0; j < 5; j++ {
 		err := siteConf.AddSiteToParse(fmt.Sprintf("link %v", j), fmt.Sprintf("%v", j), 0)
 		if err != nil {

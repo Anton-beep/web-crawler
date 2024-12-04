@@ -19,8 +19,8 @@ type Message struct {
 	Depth     int    `json:"depth"`
 }
 
-func New(path string) *SitesKafka {
-	return &SitesKafka{cfg: &config.NewConfig(path).Kafka}
+func New(cfg *config.Config) *SitesKafka {
+	return &SitesKafka{cfg: &cfg.Kafka}
 }
 
 func (s SitesKafka) AddSiteToParse(link string, projectId string, depth int) error {

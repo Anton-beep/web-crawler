@@ -11,8 +11,8 @@ type Project struct {
 }
 
 type ShortProject struct {
-	ID   string
-	Name string
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type ProjectTemporaryData struct {

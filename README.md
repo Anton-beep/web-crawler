@@ -22,6 +22,17 @@ docker compose -f deployments/docker-compose-dev.yml up --build
 ```
 In this mode, all third-party containers will be deployed. The ports will be forwarded to localhost.
 
+If you need to restart the project, run the command:
+```bash
+docker compose -f deployments/docker-compose-dev.yml down
+```
+
+and clean volumes (**delete data**):
+```bash
+docker compose -f deployments/docker-compose-dev.yml down -v
+```
+
+
 ## How to start services
 
 ### Backend
