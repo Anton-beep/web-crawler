@@ -39,9 +39,8 @@ func NewConfig(args ...string) *Config {
 	err := cleanenv.ReadConfig(path, &cfg)
 	if err != nil {
 		errString := fmt.Sprintf("failed to read config: %e", err)
-		zap.S().Fatal(fmt.Sprintf(errString))
+		zap.S().Error(errString)
 		panic(errString)
-		return nil
 	}
 	return &cfg
 }
