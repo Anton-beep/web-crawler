@@ -47,6 +47,7 @@ integration tests:
   needs: ["build compose file", "build integration tests"]
   script:
     - cp configs/Docker.env.template configs/.env
+    - cp configs/Docker.env.template configs/Docker.env
     - docker compose -f deployments/docker-compose-dev.yml up -d
     - docker run --network=deployments_service-network --name test-container tests:latest
 
@@ -55,7 +56,7 @@ deploy job:
   needs: ["build compose file", "linting", "unit tests", "integration tests"]
   script:
     - cp configs/Docker.env.template configs/Docker.env
-    - cp configs/.env.template configs/.env
+    - cp configs/Docker.env.template configs/.env
     - docker compose -f ./deployments/docker-compose.yml down -v
     - docker volume prune -f
     - docker compose -f ./deployments/docker-compose.yml up -d
