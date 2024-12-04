@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"os"
 	"sync"
 	"testing"
@@ -16,6 +17,8 @@ var (
 
 func TestMain(m *testing.M) {
 	cfg = config.NewConfig("../../../configs/.env")
+	config.InitLogger(true)
+	zap.S().Debug(cfg)
 	code := m.Run()
 	os.Exit(code)
 }
