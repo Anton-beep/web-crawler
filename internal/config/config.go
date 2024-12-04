@@ -13,7 +13,9 @@ type KafkaConfig struct {
 }
 
 type ReceiverConfig struct {
-	Port int `env:"RECEIVER_PORT" env-default:"8080"`
+	Port     int    `env:"RECEIVER_PORT" env-default:"8080"`
+	Depth    int    `env:"DEFAULT_DEPTH" env-default:"20"`
+	TempUUID string `env:"TEMP_UUID" env-default:"00000000-0000-0000-0000-000000000000"`
 }
 
 type Config struct {

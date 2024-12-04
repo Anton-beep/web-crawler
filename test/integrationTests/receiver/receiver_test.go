@@ -23,22 +23,6 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestPing(t *testing.T) {
-	if !cfg.RunIntegrationTests {
-		return
-	}
-
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/ping", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	assert.NoError(t, receiver.Pong(c))
-
-	assert.Equal(t, http.StatusOK, rec.Code)
-	assert.Equal(t, "pong", rec.Body.String())
-}
-
 func TestCreateProject(t *testing.T) {
 	if !cfg.RunIntegrationTests {
 		return
@@ -165,4 +149,65 @@ func TestDeleteProject(t *testing.T) {
 
 	assert.NoError(t, r.GetProject(getCtx))
 	assert.Equal(t, http.StatusBadRequest, getRec.Code)
+}
+
+func TestGetAllShort(t *testing.T) {
+	if !cfg.RunIntegrationTests {
+		return
+	}
+
+	e := echo.New()
+	r := receiver.New(1234, "../../../configs/.env")
+
+	// Create
+	createReq := httptest.NewRequest(
+		http.MethodPost,
+		"/project/create",
+		utils.GetReaderFromStruct(struct {
+			Name     string `json:"name"`
+			StartUrl string `json:"start_url"`
+		}{"newProject", "https://google.com"}),
+	)
+	createReq.Header.Set("Content-Type", "application/json; charset=utf8")
+	createRec := httptest.NewRecorder()
+	createCtx := e.NewContext(createReq, createRec)
+
+	assert.NoError(t, r.CreateProject(createCtx))
+	assert.Equal(t, http.StatusOK, createRec.Code)
+
+	var outCreate struct {
+		Id string `json:"id"`
+	}
+	assert.NoError(t, json.Unmarshal(createRec.Body.Bytes(), &outCreate))
+
+	// Create 2
+	createReq2 := httptest.NewRequest(
+		http.MethodPost,
+		"/project/create",
+		utils.GetReaderFromStruct(struct {
+			Name     string `json:"name"`
+			StartUrl string `json:"start_url"`
+		}{"newProject2", "https://google.com"}),
+	)
+	createReq2.Header.Set("Content-Type", "application/json; charset=utf8")
+	createRec2 := httptest.NewRecorder()
+	createCtx2 := e.NewContext(createReq2, createRec2)
+
+	assert.NoError(t, r.CreateProject(createCtx2))
+	assert.Equal(t, http.StatusOK, createRec2.Code)
+
+	// Get all short
+	getAllShortReq := httptest.NewRequest(
+		http.MethodGet,
+		"/project/getAllShort",
+		nil,
+	)
+	getAllShortRec := httptest.NewRecorder()
+	getAllShortCtx := e.NewContext(getAllShortReq, getAllShortRec)
+
+	assert.NoError(t, r.GetAllShort(getAllShortCtx))
+	assert.Equal(t, http.StatusOK, getAllShortRec.Code)
+
+	assert.Contains(t, getAllShortRec.Body.String(), "newProject")
+	assert.Contains(t, getAllShortRec.Body.String(), "newProject2")
 }

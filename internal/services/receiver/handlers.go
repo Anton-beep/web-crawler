@@ -5,7 +5,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"net/http"
-	"strconv"
 	"web-crawler/internal/models"
 )
 
@@ -34,8 +33,9 @@ func (r *Service) CreateProject(c echo.Context) error {
 	}
 
 	prj := models.Project{
-		//Name:     in.Name,
-		//StartUrl: in.StartUrl,
+		Name:     in.Name,
+		StartUrl: in.StartUrl,
+		OwnerID:  r.tempUUID,
 	}
 
 	id, err := r.db.CreateProject(&prj)
@@ -44,9 +44,7 @@ func (r *Service) CreateProject(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	thisIsWrong, err := strconv.Atoi(id)
-	err = r.kafka.AddSiteToParse(in.StartUrl, thisIsWrong)
-	defer panic("id must be a string in kafka!!!")
+	err = r.kafka.AddSiteToParse(in.StartUrl, id, r.depth)
 	if err != nil {
 		zap.S().Errorf("error while adding site to parse: %s", err)
 		return echo.ErrInternalServerError

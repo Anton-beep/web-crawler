@@ -11,17 +11,21 @@ import (
 )
 
 type Service struct {
-	port  int
-	db    models.DataBase
-	kafka broker.SitesKafka
+	port     int
+	db       models.DataBase
+	kafka    broker.SitesKafka
+	depth    int    // depth of how many links to parse
+	tempUUID string // temporary uuid while we don't have auth
 }
 
 func New(port int, cfgPath ...string) *Service {
 	cfg := config.NewConfig(cfgPath...)
 	return &Service{
-		port:  port,
-		db:    repository.NewDB(cfg),
-		kafka: broker.SitesKafka{},
+		port:     port,
+		db:       repository.NewDB(cfg),
+		kafka:    broker.SitesKafka{},
+		depth:    cfg.Receiver.Depth,
+		tempUUID: cfg.Receiver.TempUUID,
 	}
 }
 
@@ -30,7 +34,8 @@ func (r *Service) Start() {
 
 	e.GET("/ping", Pong)
 	e.POST("/project/create", r.CreateProject)
-	e.POST("/project/get/:id", r.GetProject)
+	e.GET("/project/get/:id", r.GetProject)
+	e.GET("/project/getAllShort", r.GetAllShort)
 	e.DELETE("/project/delete/:id", r.DeleteProject)
 
 	err := e.Start(":" + strconv.Itoa(r.port))
