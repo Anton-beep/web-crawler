@@ -19,6 +19,7 @@ unit tests:
   image: golang:1.22-alpine
   script:
     - cp configs/.env.template configs/.env
+    - cp configs/Docker.env.template configs/Docker.env
     - go mod download
     - go test -count=1 -cover -v ./...
 
