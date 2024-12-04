@@ -46,7 +46,8 @@ integration tests:
   stage: integration tests
   needs: ["build compose file", "build integration tests"]
   script:
-    - cp configs/.env.template configs/.env
+    - cp configs/Docker.env.template configs/.env
+    - cp configs/Docker.env.template configs/Docker.env
     - docker compose -f deployments/docker-compose-dev.yml up -d
     - docker run --network=deployments_service-network --name test-container tests:latest
 
