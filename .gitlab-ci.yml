@@ -39,6 +39,7 @@ build integration tests:
   needs: []
   script:
     - cp configs/Docker.env.template configs/.env
+    - cp configs/Docker.env.template configs/Docker.env
     - docker rm -f test-container || true
     - docker build -t tests:latest -f build/integrationTests/Dockerfile ./
 
