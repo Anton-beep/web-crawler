@@ -1,7 +1,9 @@
 package config
 
 import (
+	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
+	"go.uber.org/zap"
 	"web-crawler/internal/connection"
 )
 
@@ -34,6 +36,9 @@ func NewConfig(args ...string) *Config {
 	var cfg Config
 	err := cleanenv.ReadConfig(path, &cfg)
 	if err != nil {
+		errString := fmt.Sprintf("failed to read config: %e", err)
+		zap.S().Fatal(fmt.Sprintf(errString))
+		panic(errString)
 		return nil
 	}
 	return &cfg
