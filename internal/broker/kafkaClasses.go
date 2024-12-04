@@ -71,6 +71,7 @@ func (s SitesKafka) CheckSitesToParse() (*Message, error) {
 	if err != nil {
 		return &Message{}, err
 	}
+	//TODO debugging fmt.Print is not cool. Use zap.S().Debug()
 	fmt.Printf("message at topic/partition/offset %v/%v/%v: %s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 	toReturn := Message{}
 	err = json.Unmarshal(m.Value, &toReturn)
