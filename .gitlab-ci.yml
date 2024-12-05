@@ -23,17 +23,6 @@ unit tests:
     - go mod download
     - go test -count=1 -cover -v ./...
 
-build compose file:
-  stage: build
-  needs: ["unit tests"]
-  script:
-    - cp configs/.env.template configs/.env
-    - cp configs/Docker.env.template configs/Docker.env
-    - docker compose -f deployments/docker-compose.yml down
-    - docker compose -f deployments/docker-compose.yml build
-    - docker compose -f deployments/docker-compose-dev.yml down
-    - docker compose -f deployments/docker-compose-dev.yml build
-
 build integration tests:
   stage: build
   needs: []
@@ -47,6 +36,7 @@ integration tests:
   needs: ["build compose file", "build integration tests"]
   script:
     - cp configs/Docker.env.template configs/.env
+    - docker compose -f deployments/docker-compose-dev.yml down
     - docker compose -f deployments/docker-compose-dev.yml up -d
     - docker run --network=deployments_service-network --name test-container tests:latest
 
