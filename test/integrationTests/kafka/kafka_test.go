@@ -1,7 +1,9 @@
 package kafka
 
 import (
+	"context"
 	"fmt"
+	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
 	"os"
 	"sync"
@@ -19,6 +21,58 @@ func TestMain(m *testing.M) {
 	cfg = config.NewConfig("../../../configs/.env")
 	config.InitLogger(true)
 	zap.S().Debug(cfg)
+
+	zap.S().Debug("Testing connection")
+	// to produce messages
+	topic := "my-topic"
+	partition := 0
+
+	conn, err := kafka.DialLeader(context.Background(), "tcp", "localhost:9092", topic, partition)
+	if err != nil {
+		zap.S().Error("Failed to connect to kafka dealer", err)
+	}
+
+	conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+	_, err = conn.WriteMessages(
+		kafka.Message{Value: []byte("one!")},
+		kafka.Message{Value: []byte("two!")},
+		kafka.Message{Value: []byte("three!")},
+	)
+	if err != nil {
+		zap.S().Error("failed to write messages:", err)
+	}
+
+	if err := conn.Close(); err != nil {
+		zap.S().Error("failed to close writer:", err)
+	}
+
+	conn1, err := kafka.DialLeader(context.Background(), "tcp", "localhost:9092", topic, partition)
+	if err != nil {
+		zap.S().Error("failed to dial leader:", err)
+	}
+
+	conn1.SetReadDeadline(time.Now().Add(10 * time.Second))
+	batch := conn1.ReadBatch(10e3, 1e6) // fetch 10KB min, 1MB max
+
+	b := make([]byte, 10e3) // 10KB max per message
+	for {
+		n, err := batch.Read(b)
+		if err != nil {
+			break
+		}
+		fmt.Println(string(b[:n]))
+	}
+
+	if err := batch.Close(); err != nil {
+		zap.S().Error("failed to close batch:", err)
+	}
+
+	if err := conn.Close(); err != nil {
+		zap.S().Error("failed to close connection:", err)
+	}
+
+	zap.S().Debug("Testing connection finished")
+
 	code := m.Run()
 	os.Exit(code)
 }
