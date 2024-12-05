@@ -1,10 +1,7 @@
 package kafka
 
 import (
-	"context"
 	"fmt"
-	"github.com/segmentio/kafka-go"
-	"go.uber.org/zap"
 	"os"
 	"sync"
 	"testing"
@@ -20,77 +17,8 @@ var (
 func TestMain(m *testing.M) {
 	cfg = config.NewConfig("../../../configs/.env")
 	config.InitLogger(true)
-	zap.S().Debug(cfg)
 	code := m.Run()
 	os.Exit(code)
-}
-
-func TestConnectionToKafka(t *testing.T) {
-	if !cfg.RunIntegrationTests {
-		return
-	}
-	zap.S().Debug("Testing connection")
-	// to produce messages
-	topic := "my-topic"
-	partition := 0
-
-	conn, err := kafka.DialLeader(context.Background(), "tcp", "kafka:9092", topic, partition)
-	if err != nil {
-		zap.S().Error("Failed to connect to kafka dealer", err)
-	} else {
-		zap.S().Debug("Connection opend")
-	}
-
-	_ = conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
-	_, err = conn.WriteMessages(
-		kafka.Message{Value: []byte("one!")},
-		kafka.Message{Value: []byte("two!")},
-		kafka.Message{Value: []byte("three!")},
-	)
-	if err != nil {
-		zap.S().Error("failed to write messages:", err)
-	} else {
-		zap.S().Debug("Message sent")
-	}
-
-	if err := conn.Close(); err != nil {
-		zap.S().Error("failed to close writer:", err)
-	} else {
-		zap.S().Debug("Writer closed")
-	}
-
-	conn1, err := kafka.DialLeader(context.Background(), "tcp", "kafka:9092", topic, partition)
-	if err != nil {
-		zap.S().Error("failed to dial leader:", err)
-	} else {
-		zap.S().Debug("Reader opened")
-	}
-
-	_ = conn1.SetReadDeadline(time.Now().Add(10 * time.Second))
-	batch := conn1.ReadBatch(10e3, 1e6) // fetch 10KB min, 1MB max
-
-	b := make([]byte, 10e3) // 10KB max per message
-	for {
-		n, err := batch.Read(b)
-		if err != nil {
-			break
-		}
-		fmt.Println(string(b[:n]))
-	}
-
-	if err := batch.Close(); err != nil {
-		zap.S().Error("failed to close batch:", err)
-	} else {
-		zap.S().Debug("Batch closed")
-	}
-
-	if err := conn.Close(); err != nil {
-		zap.S().Error("failed to close connection:", err)
-	} else {
-		zap.S().Debug("Connection closed")
-	}
-
-	zap.S().Debug("Testing connection finished")
 }
 
 func TestKafkaSingle(t *testing.T) {
