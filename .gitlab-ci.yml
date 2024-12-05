@@ -42,7 +42,7 @@ integration tests:
 
 deploy job:
   stage: deploy
-  needs: ["build compose file", "linting", "unit tests", "integration tests"]
+  needs: ["linting", "unit tests", "integration tests"]
   script:
     - cp configs/Docker.env.template configs/Docker.env
     - cp configs/Docker.env.template configs/.env
