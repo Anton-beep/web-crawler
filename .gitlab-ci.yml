@@ -38,7 +38,7 @@ build integration tests:
   stage: build
   needs: []
   script:
-    - cp configs/.env.template configs/.env
+    - cp configs/Docker.env.template configs/.env
     - docker rm -f test-container || true
     - docker build -t tests:latest -f build/integrationTests/Dockerfile ./
 
