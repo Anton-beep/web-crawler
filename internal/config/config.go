@@ -10,7 +10,7 @@ import (
 type KafkaConfig struct {
 	Topic        string `env:"TOPIC_NAME"`
 	SitesGroupID string `env:"SITES_GROUP_ID"`
-	Address      string `env:"KAFKA_ADDRESS"`
+	Address      string `env:"ADDRESS_KAFKA"`
 	Partition    int    `env:"KAFKA_PARTITION"`
 }
 
