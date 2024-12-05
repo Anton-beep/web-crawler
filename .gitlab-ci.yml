@@ -33,7 +33,7 @@ build integration tests:
 
 integration tests:
   stage: integration tests
-  needs: ["build compose file", "build integration tests"]
+  needs: ["build integration tests"]
   script:
     - cp configs/Docker.env.template configs/.env
     - docker compose -f deployments/docker-compose-dev.yml down
