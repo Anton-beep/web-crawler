@@ -34,9 +34,11 @@ func TestConnectionToKafka(t *testing.T) {
 	topic := "my-topic"
 	partition := 0
 
-	conn, err := kafka.DialLeader(context.Background(), "tcp", "localhost:9092", topic, partition)
+	conn, err := kafka.DialLeader(context.Background(), "tcp", "kafka:9092", topic, partition)
 	if err != nil {
 		zap.S().Error("Failed to connect to kafka dealer", err)
+	} else {
+		zap.S().Debug("Connection opend")
 	}
 
 	_ = conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
@@ -47,15 +49,21 @@ func TestConnectionToKafka(t *testing.T) {
 	)
 	if err != nil {
 		zap.S().Error("failed to write messages:", err)
+	} else {
+		zap.S().Debug("Message sent")
 	}
 
 	if err := conn.Close(); err != nil {
 		zap.S().Error("failed to close writer:", err)
+	} else {
+		zap.S().Debug("Writer closed")
 	}
 
-	conn1, err := kafka.DialLeader(context.Background(), "tcp", "localhost:9092", topic, partition)
+	conn1, err := kafka.DialLeader(context.Background(), "tcp", "kafka:9092", topic, partition)
 	if err != nil {
 		zap.S().Error("failed to dial leader:", err)
+	} else {
+		zap.S().Debug("Reader opened")
 	}
 
 	_ = conn1.SetReadDeadline(time.Now().Add(10 * time.Second))
@@ -72,10 +80,14 @@ func TestConnectionToKafka(t *testing.T) {
 
 	if err := batch.Close(); err != nil {
 		zap.S().Error("failed to close batch:", err)
+	} else {
+		zap.S().Debug("Batch closed")
 	}
 
 	if err := conn.Close(); err != nil {
 		zap.S().Error("failed to close connection:", err)
+	} else {
+		zap.S().Debug("Connection closed")
 	}
 
 	zap.S().Debug("Testing connection finished")
