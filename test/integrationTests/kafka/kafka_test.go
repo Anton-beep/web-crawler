@@ -21,7 +21,14 @@ func TestMain(m *testing.M) {
 	cfg = config.NewConfig("../../../configs/.env")
 	config.InitLogger(true)
 	zap.S().Debug(cfg)
+	code := m.Run()
+	os.Exit(code)
+}
 
+func TestConnectionToKafka(t *testing.T) {
+	if !cfg.RunIntegrationTests {
+		return
+	}
 	zap.S().Debug("Testing connection")
 	// to produce messages
 	topic := "my-topic"
@@ -32,7 +39,7 @@ func TestMain(m *testing.M) {
 		zap.S().Error("Failed to connect to kafka dealer", err)
 	}
 
-	conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+	_ = conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 	_, err = conn.WriteMessages(
 		kafka.Message{Value: []byte("one!")},
 		kafka.Message{Value: []byte("two!")},
@@ -51,7 +58,7 @@ func TestMain(m *testing.M) {
 		zap.S().Error("failed to dial leader:", err)
 	}
 
-	conn1.SetReadDeadline(time.Now().Add(10 * time.Second))
+	_ = conn1.SetReadDeadline(time.Now().Add(10 * time.Second))
 	batch := conn1.ReadBatch(10e3, 1e6) // fetch 10KB min, 1MB max
 
 	b := make([]byte, 10e3) // 10KB max per message
@@ -72,9 +79,6 @@ func TestMain(m *testing.M) {
 	}
 
 	zap.S().Debug("Testing connection finished")
-
-	code := m.Run()
-	os.Exit(code)
 }
 
 func TestKafkaSingle(t *testing.T) {
