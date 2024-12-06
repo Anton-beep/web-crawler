@@ -6,12 +6,16 @@ import (
 )
 
 type KafkaConfig struct {
-	Listener string `env:"KAFKA_ADVERTISED_LISTENERS" env-default:"localhost"`
-	Host     string `env:"HOST_KAFKA" env-default:"localhost:9092"`
+	Topic        string `env:"TOPIC_NAME"`
+	SitesGroupID string `env:"SITES_GROUP_ID"`
+	Address      string `env:"KAFKA_ADDRESS"`
+	Partition    int    `env:"KAFKA_PARTITION"`
 }
 
 type ReceiverConfig struct {
-	Port int `env:"RECEIVER_PORT" env-default:"8080"`
+	Port     int    `env:"RECEIVER_PORT" env-default:"8080"`
+	Depth    int    `env:"DEFAULT_DEPTH" env-default:"20"`
+	TempUUID string `env:"TEMP_UUID" env-default:"00000000-0000-0000-0000-000000000000"`
 }
 
 type Config struct {
