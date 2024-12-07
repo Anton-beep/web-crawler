@@ -10,6 +10,7 @@ linting:
   image: golang:1.22-alpine
   script:
     - wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.62.2
+    - rm -rf frontend
     - ./bin/golangci-lint --version
     - ./bin/golangci-lint run -c configs/.golangci.yml
 
