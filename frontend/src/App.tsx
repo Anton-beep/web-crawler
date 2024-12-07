@@ -1,33 +1,27 @@
-import ForceGraph from './components/SitesGraph/SitesGraph';
-import {GraphData} from "./types/GraphData.ts";
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Header from "./components/Header.tsx";
+import Footer from "./components/Footer.tsx";
+import About from "./components/pages/About.tsx";
+import Dashboard from "./components/pages/Dashboard.tsx";
+import Project from "@/components/pages/Project.tsx";
+
 
 function App() {
-    const bib: GraphData = {
-        nodes: [
-            {id: 'site1'},
-            {id: 'site2'},
-            {id: 'site3'},
-            {id: 'site4'},
-            {id: 'site5'},
-            {id: 'site6'},
-        ],
-        links: [
-            {source: 'site1', target: 'site2'},
-            {source: 'site1', target: 'site3'},
-            {source: 'site2', target: 'site3'},
-            {source: 'site4', target: 'site5'},
-            {source: 'site4', target: 'site6'},
-            {source: 'site5', target: 'site6'},
-            {source: 'site1', target: 'site6'},
-        ],
-    }
 
     return (
-        <div className="App">
-            <div>
-                <ForceGraph width={1000} data={bib} backgroundCol={'#020202'} height={1000}/>
+        <Router>
+            <div className="flex flex-col min-h-screen">
+                <Header />
+                <div className="flex-auto mx-4">
+                    <Routes>
+                        <Route path="/" element={<About />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="project/:projectId" element={<Project />} />
+                    </Routes>
+                </div>
+                <Footer />
             </div>
-        </div>
+        </Router>
     );
 }
 

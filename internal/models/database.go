@@ -1,15 +1,15 @@
 package models
 
 type Project struct {
-	ID               string   `db:"id"`
-	OwnerID          string   `db:"owner_id"`
-	Name             string   `db:"name"`
-	StartUrl         string   `db:"start_url"`
-	Processing       bool     `db:"processing"`
-	WebGraph         string   `db:"web_graph"`
-	DlqSites         []string `db:"dlq_sites"`
-	MaxDepth         int      `db:"max_depth"`
-	MaxNumberOfLinks int      `db:"max_number_of_links"`
+	ID               string   `db:"id" json:"id"`
+	OwnerID          string   `db:"owner_id" json:"owner_id"`
+	Name             string   `db:"name" json:"name"`
+	StartUrl         string   `db:"start_url" json:"start_url"`
+	Processing       bool     `db:"processing" json:"processing"`
+	WebGraph         string   `db:"web_graph" json:"web_graph"`
+	DlqSites         []string `db:"dlq_sites" json:"dlq_sites"`
+	MaxDepth         int      `db:"max_depth" json:"max_depth"`
+	MaxNumberOfLinks int      `db:"max_number_of_links" json:"max_number_of_links"`
 }
 
 type ShortProject struct {
