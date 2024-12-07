@@ -33,7 +33,7 @@ func NewServer(cfg *config.Config) *Server {
 	return &Server{
 		DataBase:             repository.NewDB(cfg),
 		Broker:               broker.New(cfg, true, true),
-		ProjectTemporaryData: nil,
+		ProjectTemporaryData: &models.ProjectTemporaryData{},
 		TextTags:             tagMap,
 		Domain:               "",
 		RandomGenerator:      rand.New(rand.NewSource(time.Now().UnixNano())),

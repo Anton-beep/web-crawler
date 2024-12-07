@@ -3,7 +3,6 @@ package collector
 import (
 	"go.uber.org/zap"
 	"strings"
-	"time"
 	"web-crawler/internal/models"
 )
 
@@ -16,7 +15,6 @@ func GenerateNodeSlug(projectId, link string) string {
 }
 
 func (s *Server) WasParsed() bool {
-	time.Sleep(1 * time.Second)
 	slug := GenerateLinkSlug(s.Message.ProjectId, s.Message.Link)
 	status, err := s.DataBase.CheckSlug(slug)
 	if err != nil {

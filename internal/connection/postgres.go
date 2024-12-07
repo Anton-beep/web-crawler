@@ -60,7 +60,7 @@ func CreateProjectTable(db *sqlx.DB) error {
 	);
 	`
 
-	_, err := db.Exec(query)
+	_, err := db.ExecContext(context.Background(), query)
 	if err != nil {
 		return err
 	}

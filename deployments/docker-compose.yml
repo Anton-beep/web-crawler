@@ -12,6 +12,8 @@ services:
     container_name: kafka
     depends_on:
       - zookeeper
+    ports:
+      - "9092:9092"
     env_file:
       - ../configs/Docker.env
     healthcheck:
@@ -22,12 +24,55 @@ services:
     networks:
       - service-network
 
+  collector:
+    build:
+      context: ../
+      dockerfile: build/collector/Dockerfile
+    container_name: collector
+    networks:
+      - service-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+         condition: service_healthy
+
+  receiver:
+    build:
+      context: ../
+      dockerfile: build/receiver/Dockerfile
+    container_name: receiver
+    networks:
+      - service-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+         condition: service_healthy
+
+  #TODO: remove dummy site from prod
+  dummy_site:
+    build:
+      context: ../
+      dockerfile: build/dummySite/Dockerfile
+    container_name: dummySite
+    ports:
+      - "9090:9090"
+    networks:
+      - service-network
+
   nginx:
     image: nginx
     ports:
       - "80:80"
     volumes:
       - ../configs/nginx/:/etc/nginx/
+    depends_on:
+      - receiver
     networks:
       - service-network
 
@@ -38,8 +83,10 @@ services:
       - ../configs/Docker.env
     networks:
       - service-network
-    volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+#    volumes:
+#      - ./postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     healthcheck:
       test: [ "CMD", "pg_isready" ]
       interval: 10s
@@ -49,13 +96,15 @@ services:
   redis:
     image: redis:7
     container_name: redis_container
-    volumes:
-      - ./redis_data:/data
+#    volumes:
+#      - ./redis_data:/data
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 1s
       timeout: 10s
       retries: 10
+    ports:
+      - "6379:6379"
     env_file:
       - ../configs/Docker.env
     networks:
