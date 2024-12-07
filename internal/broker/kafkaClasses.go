@@ -9,6 +9,7 @@ import (
 	"web-crawler/internal/config"
 )
 
+// 💀 💀 💀
 type SitesKafka struct {
 	cfg *config.KafkaConfig
 }

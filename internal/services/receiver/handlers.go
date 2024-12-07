@@ -37,9 +37,11 @@ func (r *Service) CreateProject(c echo.Context) error {
 	}
 
 	prj := models.Project{
-		Name:     in.Name,
-		StartUrl: in.StartUrl,
-		OwnerID:  r.tempUUID,
+		Name:             in.Name,
+		StartUrl:         in.StartUrl,
+		OwnerID:          r.tempUUID,
+		MaxNumberOfLinks: r.maxNumberOfLinks,
+		MaxDepth:         r.depth,
 	}
 
 	id, err := r.db.CreateProject(&prj)
@@ -48,7 +50,18 @@ func (r *Service) CreateProject(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	err = r.kafka.AddSiteToParse(in.StartUrl, id, r.depth)
+	err = r.db.SetProjectTemporaryData(id, &models.ProjectTemporaryData{
+		Nodes:                 "",
+		Links:                 "",
+		TotalCollectorCounter: prj.MaxNumberOfLinks,
+		CollectorCounterQueue: 1,
+	})
+	if err != nil {
+		zap.S().Errorf("error while setting project temporary data: %s", err)
+		return echo.ErrInternalServerError
+	}
+
+	err = r.kafka.AddSiteToParse(in.StartUrl, id, 0)
 	if err != nil {
 		zap.S().Errorf("error while adding site to parse: %s", err)
 		return echo.ErrInternalServerError

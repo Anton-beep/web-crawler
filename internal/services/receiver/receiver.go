@@ -11,21 +11,23 @@ import (
 )
 
 type Service struct {
-	port     int
-	db       models.DataBase
-	kafka    *broker.SitesKafka
-	depth    int    // depth of how many links to parse
-	tempUUID string // temporary uuid while we don't have auth
+	port             int
+	db               models.DataBase
+	kafka            *broker.SitesKafka
+	depth            int // depth of how many links to parse
+	maxNumberOfLinks int
+	tempUUID         string // temporary uuid while we don't have auth
 }
 
 func New(port int, cfgPath ...string) *Service {
 	cfg := config.NewConfig(cfgPath...)
 	return &Service{
-		port:     port,
-		db:       repository.NewDB(cfg),
-		kafka:    broker.New(cfg),
-		depth:    cfg.Receiver.Depth,
-		tempUUID: cfg.Receiver.TempUUID,
+		port:             port,
+		db:               repository.NewDB(cfg),
+		kafka:            broker.New(cfg),
+		depth:            cfg.Receiver.Depth,
+		maxNumberOfLinks: cfg.Receiver.MaxNumberOfLinks,
+		tempUUID:         cfg.Receiver.TempUUID,
 	}
 }
 

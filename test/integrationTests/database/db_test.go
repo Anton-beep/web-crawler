@@ -18,6 +18,7 @@ var (
 
 func TestMain(m *testing.M) {
 	cfg = config.NewConfig("../../../configs/.env")
+	config.InitLogger(true)
 	if cfg.RunIntegrationTests {
 		db = repository.NewDB(cfg)
 	}
@@ -350,23 +351,23 @@ func TestUpdateLink(t *testing.T) {
 
 	link := "linkUpdateLink" + time.Now().String()
 
-	visited, err := db.CheckLink(link)
+	visited, err := db.CheckSlug(link)
 	assert.Equal(t, err, nil, "checking link should not return an error")
 	assert.Equal(t, visited, false, "link should not be visited")
 
-	err = db.UpdateLink(link, true)
+	err = db.UpdateSlug(link, true)
 	assert.Equal(t, err, nil, "updating link should not return an error")
 
-	visited, err = db.CheckLink(link)
+	visited, err = db.CheckSlug(link)
 	assert.Equal(t, err, nil, "checking link should not return an error")
 	assert.Equal(t, visited, true, "link should be visited")
 
 	for i := 1; i < 10; i++ {
-		err = db.UpdateLink(link, i%2 == 0)
+		err = db.UpdateSlug(link, i%2 == 0)
 		assert.Equal(t, err, nil, "updating link should not return an error")
 	}
 
-	visited, err = db.CheckLink(link)
+	visited, err = db.CheckSlug(link)
 	assert.Equal(t, err, nil, "checking link should not return an error")
 	assert.Equal(t, visited, false, "link should not be visited")
 }
@@ -378,14 +379,14 @@ func TestCheckLink(t *testing.T) {
 
 	link := "linkCheckLink" + time.Now().String()
 
-	visited, err := db.CheckLink(link)
+	visited, err := db.CheckSlug(link)
 	assert.Equal(t, err, nil, "checking link should not return an error")
 	assert.Equal(t, visited, false, "link should not be visited")
 
-	err = db.UpdateLink(link, true)
+	err = db.UpdateSlug(link, true)
 	assert.Equal(t, err, nil, "updating link should not return an error")
 
-	visited, err = db.CheckLink(link)
+	visited, err = db.CheckSlug(link)
 	assert.Equal(t, err, nil, "checking link should not return an error")
 	assert.Equal(t, visited, true, "link should be visited")
 }
