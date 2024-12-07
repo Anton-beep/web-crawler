@@ -1,8 +1,10 @@
 #!/bin/sh
 
 # Запускаем тесты с покрытием и сохраняем результат в файл
+sleep 15
+
 echo "Запуск тестов..."
-if ! go test -count=1 -coverprofile=coverage.out ./...; then
+if ! go test -count=1 -v -coverprofile=coverage.out ./...; then
   echo "Ошибка: один или несколько тестов завершились с ошибкой"
   exit 1
 fi

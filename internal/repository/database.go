@@ -22,6 +22,51 @@ type DataBase struct {
 	redis    *redis.Client
 }
 
+func (d DataBase) GetProjectMaxDepth(id string) (int, error) {
+	err := d.checkIfIdExists(id)
+	if err != nil {
+		return 0, err
+	}
+
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+	query := psql.Select("max_depth").
+		From("projects").
+		Where(sq.Eq{"id": id})
+
+	ProjectQueryString, args, err := query.ToSql()
+	if err != nil {
+		zap.S().Debug("failed to build query for project", err)
+		return 0, fmt.Errorf("failed to build query for project: %w", err)
+	}
+
+	var depth int
+	err = d.postgres.Get(&depth, ProjectQueryString, args...)
+	if err != nil {
+		return 0, err
+	}
+	return depth, nil
+}
+
+func (d DataBase) CheckCollectorCounter(id string) error {
+	err := d.checkIfIdExists(id)
+	if err != nil {
+		return err
+	}
+	ptd, err := d.GetProjectTemporaryData(id)
+	if err != nil {
+		return err
+	}
+	if ptd.TotalCollectorCounter <= 0 {
+		return models.CollectorCounterIsNegative
+	}
+	err = d.SetProjectTemporaryData(id, ptd)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (d DataBase) checkIfIdExists(id string) error {
 	if uuid.Validate(id) != nil {
 		return models.DataBaseWrongID
@@ -71,7 +116,7 @@ func (d DataBase) GetProject(id string) (*models.Project, error) {
 	}
 
 	ProjectQuery := psql.Select(
-		"id", "owner_id", "name", "start_url", "processing", "web_graph").
+		"id", "owner_id", "name", "start_url", "processing", "web_graph", "max_depth", "max_number_of_links").
 		From("projects").
 		Where(sq.Eq{"id": id})
 
@@ -118,22 +163,29 @@ func (d DataBase) GetProjectTemporaryData(id string) (*models.ProjectTemporaryDa
 func (d DataBase) CreateProject(project *models.Project) (string, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-	project.ID = uuid.New().String()
-	query := psql.Insert("projects").Columns("id", "owner_id", "name", "start_url", "processing", "web_graph", "dlq_sites").
-		Values(project.ID, project.OwnerID, project.Name, project.StartUrl, project.Processing, project.WebGraph, pq.Array(project.DlqSites))
+	query := psql.Insert("projects").
+		Columns("id", "owner_id", "name", "start_url", "processing", "web_graph", "dlq_sites", "max_depth", "max_number_of_links").
+		Values(sq.Expr("gen_random_uuid()"), project.OwnerID, project.Name, project.StartUrl, project.Processing, project.WebGraph, pq.Array(project.DlqSites), project.MaxDepth, project.MaxNumberOfLinks).
+		Suffix("RETURNING id")
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		zap.S().Debug("failed to build query", err)
 		return "", fmt.Errorf("failed to build query: %w", err)
 	}
 
-	_, err = d.postgres.Exec(queryString, args...)
-
+	var generatedID string
+	err = d.postgres.QueryRow(queryString, args...).Scan(&generatedID)
 	if err != nil {
 		zap.S().Debug("failed to create project", err)
 		return "", fmt.Errorf("failed to create project: %w", err)
 	}
-	return project.ID, nil
+
+	if generatedID == "" {
+		return "", fmt.Errorf("failed to create project (id is \"\"): %w", models.DataBaseNotFound)
+	}
+	project.ID = generatedID
+
+	return generatedID, nil
 }
 
 func (d DataBase) SetProjectTemporaryData(id string, data *models.ProjectTemporaryData) error {
@@ -260,7 +312,7 @@ func (d DataBase) GetProjectsByOwnerId(ownerId string) ([]*models.ShortProject, 
 	return projects, nil
 }
 
-func (d DataBase) CheckLink(slag string) (bool, error) {
+func (d DataBase) CheckSlug(slag string) (bool, error) {
 	val, err := d.redis.Get(context.Background(), slag).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
@@ -272,7 +324,7 @@ func (d DataBase) CheckLink(slag string) (bool, error) {
 	return val == "1", nil
 }
 
-func (d DataBase) UpdateLink(slag string, status bool) error {
+func (d DataBase) UpdateSlug(slag string, status bool) error {
 	err := d.redis.Set(context.Background(), slag, status, 0).Err()
 	return err
 }

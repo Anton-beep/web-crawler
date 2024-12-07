@@ -16,6 +16,7 @@ var (
 
 func TestMain(m *testing.M) {
 	cfg = config.NewConfig("../../../configs/.env")
+	config.InitLogger(true)
 	code := m.Run()
 	os.Exit(code)
 }
@@ -24,7 +25,9 @@ func TestKafkaSingle(t *testing.T) {
 	if !cfg.RunIntegrationTests {
 		return
 	}
-	siteConf := *broker.New(cfg)
+	cfg.Kafka.Topic = "test-topic"
+	siteConf := *broker.New(cfg, true, true)
+	defer siteConf.Close()
 	err := siteConf.AddSiteToParse("link", "1", 0)
 	if err != nil {
 		t.Errorf("Error: %v", err)
@@ -42,7 +45,8 @@ func TestKafkaMultiple(t *testing.T) {
 	if !cfg.RunIntegrationTests {
 		return
 	}
-	siteConf := *broker.New(cfg)
+	siteConf := *broker.New(cfg, true, false)
+	//defer siteConf.Close()
 	for j := 0; j < 5; j++ {
 		err := siteConf.AddSiteToParse(fmt.Sprintf("link %v", j), fmt.Sprintf("%v", j), 0)
 		if err != nil {
@@ -50,21 +54,28 @@ func TestKafkaMultiple(t *testing.T) {
 		}
 	}
 	var (
-		wg     sync.WaitGroup
-		answer = make([]broker.Message, 0)
-		mu     sync.Mutex
+		wg sync.WaitGroup
 	)
-	for i := 0; i < 5; i++ {
+	for i := 6; i < 11; i++ {
 		wg.Add(1)
 		go func() {
-			defer wg.Done()
-			msg, err := siteConf.CheckSitesToParse()
+			siteConf := *broker.New(cfg, true, true)
+			defer func() {
+				siteConf.Close()
+				wg.Done()
+			}()
+			err := siteConf.AddSiteToParse(fmt.Sprintf("link %v", i), fmt.Sprintf("%v", i), 0)
 			if err != nil {
 				t.Errorf("Error: %v", err)
 			}
-			mu.Lock()
-			answer = append(answer, *msg)
-			mu.Unlock()
+			_, err = siteConf.CheckSitesToParse()
+			if err != nil {
+				t.Errorf("Error: %v", err)
+			}
+			_, err = siteConf.CheckSitesToParse()
+			if err != nil {
+				t.Errorf("Error: %v", err)
+			}
 		}()
 	}
 	wg.Wait()
