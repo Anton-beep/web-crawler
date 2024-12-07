@@ -38,6 +38,7 @@ integration tests:
     - cp configs/Docker.env.template configs/.env
     - docker compose -f deployments/docker-compose-dev.yml down
     - docker compose -f deployments/docker-compose-dev.yml up -d
+    - sleep 15
     - docker run --network=deployments_service-network --name test-container tests:latest
 
 deploy job:
