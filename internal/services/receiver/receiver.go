@@ -2,6 +2,7 @@ package receiver
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
 	"strconv"
 	"web-crawler/internal/broker"
@@ -33,6 +34,9 @@ func New(port int, cfgPath ...string) *Service {
 
 func (r *Service) Start() {
 	e := echo.New()
+
+	e.Use(middleware.CORS())
+
 	e.GET("/ping", Pong)
 	e.POST("/project/create", r.CreateProject)
 	e.GET("/project/get/:id", r.GetProject)
