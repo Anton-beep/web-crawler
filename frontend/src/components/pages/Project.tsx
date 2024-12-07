@@ -38,12 +38,28 @@ export default function Project() {
         });
     }, [projectId]);
 
+    const getContent = () => {
+        if (loading) {
+            return (
+                <h2 className="text-2xl font-bold">
+                    Loading...</h2>
+            );
+        } else if (isInProcess) {
+            return (
+                <h2 className="text-2xl font-bold">
+                    Your project will be available shortly...</h2>
+            );
+        } else if (error) {
+            return <p className="text-error">{error}</p>;
+        } else {
+            return <SitesGraph width={1600} height={1100} backgroundCol={"#18181b"} data={data}/>;
+        }
+    }
+
     return (
         <div className="text-primary">
             <h1>Project: {projectId}</h1>
-            {error && <p className="text-error">{error}</p>}
-            {loading ? <p>Loading project data...</p> : isInProcess ? <p>Project is in process...</p> :
-                <SitesGraph width={1600} height={1100} backgroundCol={"#18181b"} data={data}/>}
+            {getContent()}
         </div>
     )
 }
