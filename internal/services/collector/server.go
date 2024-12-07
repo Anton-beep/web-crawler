@@ -32,7 +32,7 @@ func NewServer(cfg *config.Config) *Server {
 	}
 	return &Server{
 		DataBase:             repository.NewDB(cfg),
-		Broker:               broker.New(cfg),
+		Broker:               broker.New(cfg, true, true),
 		ProjectTemporaryData: nil,
 		TextTags:             tagMap,
 		Domain:               "",

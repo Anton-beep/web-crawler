@@ -24,7 +24,7 @@ func New(port int, cfgPath ...string) *Service {
 	return &Service{
 		port:             port,
 		db:               repository.NewDB(cfg),
-		kafka:            broker.New(cfg),
+		kafka:            broker.New(cfg, true, false),
 		depth:            cfg.Receiver.Depth,
 		maxNumberOfLinks: cfg.Receiver.MaxNumberOfLinks,
 		tempUUID:         cfg.Receiver.TempUUID,
@@ -33,7 +33,6 @@ func New(port int, cfgPath ...string) *Service {
 
 func (r *Service) Start() {
 	e := echo.New()
-
 	e.GET("/ping", Pong)
 	e.POST("/project/create", r.CreateProject)
 	e.GET("/project/get/:id", r.GetProject)
