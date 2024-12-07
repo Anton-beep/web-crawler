@@ -25,6 +25,7 @@ func TestKafkaSingle(t *testing.T) {
 	if !cfg.RunIntegrationTests {
 		return
 	}
+	cfg.Kafka.Topic = "test-topic"
 	siteConf := *broker.New(cfg)
 	err := siteConf.AddSiteToParse("link", "1", 0)
 	if err != nil {

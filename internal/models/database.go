@@ -18,11 +18,13 @@ type ShortProject struct {
 }
 
 type ProjectTemporaryData struct {
-	Text             string `json:"text"`
-	Titles           string `json:"titles"`
-	Nodes            string `json:"nodes"`
-	Links            string `json:"links"`
-	CollectorCounter int    `json:"collector_counter"`
+	Text                  string   `json:"text"`
+	Titles                string   `json:"titles"`
+	Nodes                 string   `json:"nodes"`
+	Links                 string   `json:"links"`
+	TotalCollectorCounter int      `json:"collector_counter"`
+	CollectorCounterQueue int      `json:"collector_counter_queue"`
+	DeadListQueueSites    []string `json:"dlq_sites"`
 }
 
 type DataBase interface {
@@ -39,6 +41,10 @@ type DataBase interface {
 
 	GetProjectsByOwnerId(ownerId string) ([]*ShortProject, error)
 
-	CheckLink(slag string) (bool, error)
-	UpdateLink(slag string, status bool) error
+	CheckSlug(slag string) (bool, error)
+	UpdateSlug(slag string, status bool) error
+
+	CheckCollectorCounter(id string) error
+
+	GetProjectMaxDepth(id string) (int, error)
 }

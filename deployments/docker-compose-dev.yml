@@ -35,8 +35,6 @@ services:
       - ../configs/.env
     networks:
       - service-network
-    volumes:
-      - ./postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
@@ -50,8 +48,6 @@ services:
     container_name: redis_container
     ports:
       - "6379:6379"
-    volumes:
-      - ./redis_data:/data
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 1s
