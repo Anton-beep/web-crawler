@@ -1,6 +1,7 @@
 // import Cookies from 'js-cookie';
 import axios, {AxiosInstance, AxiosResponse} from 'axios';
 import {ShortProject} from "@/types/ShortProject.ts";
+import {Project} from "@/types/Project.ts";
 
 
 class Api {
@@ -48,7 +49,7 @@ class Api {
         return this.axiosInstance.post('/project/create', {"name": name, "start_url": startUrl});
     }
 
-    public getProject(id: string): Promise<AxiosResponse<ShortProject>> {
+    public getProject(id: string): Promise<AxiosResponse<Project>> {
         return this.axiosInstance.get('/project/get/' + id);
     }
 
