@@ -61,6 +61,8 @@ services:
     networks:
       - service-network
 
+  frontend:
+
 networks:
   service-network:
     driver: bridge
