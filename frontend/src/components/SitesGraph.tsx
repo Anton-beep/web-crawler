@@ -2,13 +2,13 @@ import { useEffect, useRef } from 'react';
 import ForceGraph3D from '3d-force-graph';
 import SpriteText from 'three-spritetext';
 import { GraphData } from '@/types/GraphData.ts';
-import './SitesGraph.css'
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
-import getDomainFromUrl from "../../utils/getDomainFromUrl.ts";
+// import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
+import getDomainFromUrl from "../utils/getDomainFromUrl.ts";
+// @ts-expect-error : Cannot find module 'three/src/nodes/tsl/TSLCore'
 import {NodeObject} from "three/src/nodes/tsl/TSLCore";
 
 
-function ForceGraph({width ,height, backgroundCol, data} : {width: number, height: number, backgroundCol: string, data: GraphData}) {
+export default function SitesGraph({width ,height, backgroundCol, data} : {width: number, height: number, backgroundCol: string, data: GraphData}) {
     const graphRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -26,18 +26,18 @@ function ForceGraph({width ,height, backgroundCol, data} : {width: number, heigh
                 .linkDirectionalParticleSpeed(0.003);
 
             Graph.nodeThreeObject((node: NodeObject<number>) => {
-                const sprite = new SpriteText(node.id) as any;
+                const sprite = new SpriteText(node.id) as unknown as {color: string, textHeight: number, material: {depthWrite: boolean}};
                 sprite.material.depthWrite = false;
                 sprite.color = node.color;
                 sprite.textHeight = 8;
                 return sprite;
             });
 
-            const bloomPass = new UnrealBloomPass();
-            bloomPass.strength = 1.4;
-            bloomPass.radius = 0;
-            bloomPass.threshold = 0;
-            Graph.postProcessingComposer().addPass(bloomPass);
+            // const bloomPass = new UnrealBloomPass();
+            // bloomPass.strength = 0.1;
+            // bloomPass.radius = 0;
+            // bloomPass.threshold = 0;
+            // Graph.postProcessingComposer().addPass(bloomPass);
 
             return () => {
                 Graph._destructor(); // Clean up on unmount
@@ -46,6 +46,4 @@ function ForceGraph({width ,height, backgroundCol, data} : {width: number, heigh
     }, [data, height, width, backgroundCol]);
 
     return <div ref={graphRef} />;
-};
-
-export default ForceGraph;
+}

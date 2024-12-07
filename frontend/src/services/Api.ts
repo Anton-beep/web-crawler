@@ -1,15 +1,17 @@
 // import Cookies from 'js-cookie';
-import axios from 'axios';
+import axios, {AxiosInstance, AxiosResponse} from 'axios';
+import {ShortProject} from "@/types/ShortProject.ts";
+
 
 class Api {
-    private axiosInstance: axios.AxiosInstance;
+    private axiosInstance: AxiosInstance;
     // private COOKIE_NAME = 'token';
     // private LOGIN_PATH = '/login';
 
     constructor() {
         this.axiosInstance = axios.create({
-            baseURL:  process.env.RECEIVER_PORT,
-            timeout: 1000,
+            baseURL: import.meta.env.VITE_RECEIVER_HOST,
+            timeout: 50000,
             headers: {
                 'Content-Type': 'application/json',
                 // 'Authorization': 'Bearer ' + Cookies.get(this.COOKIE_NAME)
@@ -42,18 +44,19 @@ class Api {
     }
 
     public createProject(name: string, startUrl: string) {
+        console.log(import.meta.env.VITE_RECEIVER_HOST);
         return this.axiosInstance.post('/project/create', {"name": name, "start_url": startUrl});
     }
 
-    public getProject(id: string) {
+    public getProject(id: string): Promise<AxiosResponse<ShortProject>> {
         return this.axiosInstance.get('/project/get/' + id);
     }
 
-    public getAllProjectsShort() {
+    public getAllProjectsShort(): Promise<AxiosResponse<ShortProject[]>> {
         return this.axiosInstance.get('/project/getAllShort');
     }
 
-    public deleteProject(id: string) {
+    public deleteProject(id: string): Promise<AxiosResponse<ShortProject>> {
         return this.axiosInstance.delete('/project/delete' + id);
     }
 }

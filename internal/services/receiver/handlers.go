@@ -42,6 +42,7 @@ func (r *Service) CreateProject(c echo.Context) error {
 		OwnerID:          r.tempUUID,
 		MaxNumberOfLinks: r.maxNumberOfLinks,
 		MaxDepth:         r.depth,
+		Processing:       true,
 	}
 
 	id, err := r.db.CreateProject(&prj)
@@ -123,6 +124,7 @@ func (r *Service) DeleteProject(c echo.Context) error {
 	}
 
 	if err != nil {
+		zap.S().Errorf("error while deleting project: %s", err)
 		return echo.ErrInternalServerError
 	}
 
