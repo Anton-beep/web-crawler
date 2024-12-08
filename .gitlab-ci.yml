@@ -17,6 +17,7 @@ unit tests:
   stage: unit tests
   needs: []
   image: golang:1.22-alpine
+  coverage: /total:\s+\(statements\)\s+\d+.\d+%/
   script:
     - cp configs/.env.template configs/.env
     - cp configs/Docker.env.template configs/Docker.env
@@ -39,3 +40,4 @@ integration tests:
     - docker compose -f deployments/docker-compose-dev.yml down
     - docker compose -f deployments/docker-compose-dev.yml up -d
     - docker run --network=deployments_service-network --name test-container tests:latest
+  coverage: /total:\s+\(statements\)\s+\d+.\d+%/

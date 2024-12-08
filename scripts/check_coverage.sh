@@ -31,3 +31,5 @@ if [ "$coverage_int" -lt 60 ]; then
 fi
 
 echo "Все тесты пройдены успешно. Покрытие достаточное ($coverage%)"
+
+go tool cover -func cover.profile

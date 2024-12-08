@@ -1,3 +1,6 @@
+![](https://gitlab.crja72.ru/gospec/go1/web-crawler/badges/dev/pipeline.svg)
+![](https://gitlab.crja72.ru/gospec/go1/web-crawler/badges/dev/coverage.svg)
+
 # Production
 
 To run a project in production mode
