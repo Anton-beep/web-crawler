@@ -2,6 +2,7 @@ package config
 
 import "go.uber.org/zap"
 
+// InitLogger is a function that initializes the zap sugar logger
 func InitLogger(debug bool) {
 	cfg := zap.NewDevelopmentConfig()
 	if debug {

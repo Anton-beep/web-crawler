@@ -12,6 +12,7 @@ type errMsg struct {
 	Message string `json:"message"`
 }
 
+// Pong is a simple health check handler
 func Pong(c echo.Context) error {
 	return c.String(http.StatusOK, "pong")
 }
@@ -25,6 +26,7 @@ type outCreate struct {
 	Id string `json:"id"`
 }
 
+// CreateProject creates a new project
 func (r *Service) CreateProject(c echo.Context) error {
 	var in inCreate
 
@@ -71,6 +73,7 @@ func (r *Service) CreateProject(c echo.Context) error {
 	return c.JSON(http.StatusOK, outCreate{Id: id})
 }
 
+// GetProject returns project by id
 func (r *Service) GetProject(c echo.Context) error {
 	id := c.Param("id")
 
@@ -96,6 +99,7 @@ func (r *Service) GetProject(c echo.Context) error {
 	return c.JSON(http.StatusOK, prj)
 }
 
+// GetAllShort returns list of projects that belong to the user
 func (r *Service) GetAllShort(c echo.Context) error {
 	prjs, err := r.db.GetProjectsByOwnerId(r.tempUUID)
 	if err != nil {
@@ -110,6 +114,7 @@ type outDeleteProject struct {
 	Message string `json:"message"`
 }
 
+// DeleteProject deletes project by id
 func (r *Service) DeleteProject(c echo.Context) error {
 	id := c.Param("id")
 

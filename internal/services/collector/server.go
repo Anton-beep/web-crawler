@@ -43,6 +43,7 @@ func NewServer(cfg *config.Config) *Server {
 	}
 }
 
+// Start starts endless loop for parsing sites
 func (s *Server) Start() {
 	for {
 		zap.S().Debug("waiting for new message...")

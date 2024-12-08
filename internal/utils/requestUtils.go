@@ -7,6 +7,7 @@ import (
 	"net/http"
 )
 
+// AddRandomHeaders adds random headers to the request
 func AddRandomHeaders(req *http.Request, generator *rand.Rand) {
 	err := gofakeit.Seed(generator.Int63())
 	if err != nil {

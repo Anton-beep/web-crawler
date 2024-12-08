@@ -10,14 +10,19 @@ import (
 	"web-crawler/internal/utils"
 )
 
+// AddTitle adds title to project temporary data
 func (s *Server) AddTitle(title string) {
 	s.ProjectTemporaryData.Titles += title + "\n"
 }
 
+// AddText adds text to project temporary data
 func (s *Server) AddText(text string) {
 	s.ProjectTemporaryData.Text += text + "\n"
 }
 
+// AddNode adds node to project temporary data
+// If node already exists, or TotalCollectorCounter
+// is less than 0, does nothing
 func (s *Server) AddNode(link string, depth int) bool {
 	actualData, err := s.DataBase.GetProjectTemporaryData(s.Message.ProjectId)
 	if err != nil {
@@ -57,6 +62,7 @@ func (s *Server) AddNode(link string, depth int) bool {
 	return true
 }
 
+// AddLink adds link to project temporary data
 func (s *Server) AddLink(link string) {
 	zap.S().Debug("AddLink ", link)
 	status, err := s.DataBase.CheckSlug(GenerateLinkSlug(s.Message.ProjectId, link))
@@ -86,6 +92,8 @@ func (s *Server) AddLink(link string) {
 	}
 }
 
+// PrepareLink prepares link for
+// adding to project temporary data
 func (s *Server) PrepareLink(link string) {
 	if utils.IsCorrectLink(link) {
 		s.AddLink(link)
@@ -99,6 +107,7 @@ func (s *Server) PrepareLink(link string) {
 	}
 }
 
+// GetNode makes GET request to link and returns html.Node
 func (s *Server) GetNode(link string) (*html.Node, error) {
 	client := &http.Client{}
 
@@ -127,6 +136,7 @@ func (s *Server) GetNode(link string) (*html.Node, error) {
 	return doc, nil
 }
 
+// ParseNodes parses html.Node and adds
 func (s *Server) ParseNodes(n *html.Node) {
 	if _, ok := s.TextTags[n.Data]; ok {
 		if n.FirstChild != nil {

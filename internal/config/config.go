@@ -25,6 +25,7 @@ type CollectorConfig struct {
 	Tags string `env:"TEXT_TAGS" env-default:""`
 }
 
+// Config is a struct that contains the configuration for the application
 type Config struct {
 	Postgres            connection.PostgresConfig
 	Redis               connection.RedisConfig
@@ -35,6 +36,7 @@ type Config struct {
 	Debug               bool `env:"DEBUG" env-default:"true"`
 }
 
+// NewConfig is a function that creates a new Config struct
 func NewConfig(args ...string) *Config {
 	path := "configs/.env"
 	if len(args) > 0 {

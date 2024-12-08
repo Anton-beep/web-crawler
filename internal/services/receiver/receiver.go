@@ -32,6 +32,7 @@ func New(port int, cfgPath ...string) *Service {
 	}
 }
 
+// Start starts the receiver server
 func (r *Service) Start() {
 	e := echo.New()
 

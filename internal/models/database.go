@@ -27,6 +27,7 @@ type ProjectTemporaryData struct {
 	DeadListQueueSites    []string `json:"dlq_sites"`
 }
 
+// DataBase is an interface that contains methods for working with the database
 type DataBase interface {
 	GetProject(id string) (*Project, error)
 	GetProjectTemporaryData(id string) (*ProjectTemporaryData, error)

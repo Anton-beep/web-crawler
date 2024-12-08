@@ -14,6 +14,7 @@ func GenerateNodeSlug(projectId, link string) string {
 	return projectId + "#id#" + link
 }
 
+// GetDomain returns domain from url
 func GetDomain(url string) string {
 	if strings.Count(url, "http") > 0 {
 		tags := strings.Split(url, "/")
@@ -22,6 +23,7 @@ func GetDomain(url string) string {
 	return "http://" + url
 }
 
+// WasParsed checks if link was parsed
 func (s *Server) WasParsed() bool {
 	slug := GenerateLinkSlug(s.Message.ProjectId, s.Message.Link)
 	status, err := s.DataBase.CheckSlug(slug)
@@ -31,6 +33,7 @@ func (s *Server) WasParsed() bool {
 	return status
 }
 
+// AssignLink assigns link to collector
 func (s *Server) AssignLink() error {
 	slug := GenerateLinkSlug(s.Message.ProjectId, s.Message.Link)
 	err := s.DataBase.UpdateSlug(slug, true)
@@ -53,6 +56,7 @@ func (s *Server) AssignLink() error {
 	return err
 }
 
+// WriteData writes data to cache database
 func (s *Server) WriteData() {
 	actualData, err := s.DataBase.GetProjectTemporaryData(s.Message.ProjectId)
 	if err != nil {
@@ -93,6 +97,7 @@ func (s *Server) WriteData() {
 	}
 }
 
+// Clear clears server data
 func (s *Server) Clear() {
 	s.ProjectTemporaryData = &models.ProjectTemporaryData{
 		Text:                  "",
@@ -107,6 +112,7 @@ func (s *Server) Clear() {
 	s.NewCollectors = 0
 }
 
+// Process makes request to site and parses it
 func (s *Server) Process() {
 	s.AddNode(s.Message.Link, s.Message.Depth)
 	node, err := s.GetNode(s.Message.Link)

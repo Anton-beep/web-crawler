@@ -16,6 +16,7 @@ type PostgresConfig struct {
 	DB       string `env:"POSTGRES_DB" env-default:"root"`
 }
 
+// NewPostgresConnect is a function that creates a new connection to a Postgres database
 func NewPostgresConnect(config PostgresConfig) (*sqlx.DB, error) {
 	dsn := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
@@ -45,6 +46,7 @@ func NewPostgresConnect(config PostgresConfig) (*sqlx.DB, error) {
 	return connect, nil
 }
 
+// CreateProjectTable is a function that creates the table 'projects' in the Postgres database
 func CreateProjectTable(db *sqlx.DB) error {
 	query := `
 	CREATE TABLE IF NOT EXISTS projects (
