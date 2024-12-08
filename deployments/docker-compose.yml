@@ -54,15 +54,6 @@ services:
       redis:
          condition: service_healthy
 
-  #TODO: remove dummy site from prod
-  dummy_site:
-    build:
-      context: ../
-      dockerfile: build/dummySite/Dockerfile
-    container_name: dummySite
-    networks:
-      - service-network
-
   frontend:
     build:
       context: ../
