@@ -3,6 +3,7 @@ package collector
 import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"os"
 	"testing"
 	"time"
@@ -61,8 +62,8 @@ func TestAddLink(t *testing.T) {
 
 	s.PrepareLink("https://example.com/")
 
-	assert.Equal(t, s.ProjectTemporaryData.Nodes, `{"id": https://example.com/, "name": https://example.com/, "val": 1},`)
-	assert.Equal(t, s.ProjectTemporaryData.Links, `{"source": https://example.com/, "target": https://example.com/},`)
+	assert.Equal(t, s.ProjectTemporaryData.Nodes, `{"id": "https://example.com/", "name": "https://example.com/", "val": 1},`)
+	assert.Equal(t, s.ProjectTemporaryData.Links, `{"source": "https://example.com/", "target": "https://example.com/"},`)
 }
 
 func TestAddShortLink(t *testing.T) {
@@ -102,8 +103,8 @@ func TestAddShortLink(t *testing.T) {
 
 	s.PrepareLink("/")
 
-	assert.Equal(t, s.ProjectTemporaryData.Nodes, `{"id": https://example.com/, "name": https://example.com/, "val": 1},`)
-	assert.Equal(t, s.ProjectTemporaryData.Links, `{"source": https://example.com/, "target": https://example.com/},`)
+	assert.Equal(t, s.ProjectTemporaryData.Nodes, `{"id": "https://example.com/", "name": "https://example.com/", "val": 1},`)
+	assert.Equal(t, s.ProjectTemporaryData.Links, `{"source": "https://example.com/", "target": "https://example.com/"},`)
 }
 
 func TestProceedMessage(t *testing.T) {
@@ -117,7 +118,7 @@ func TestProceedMessage(t *testing.T) {
 	prj := models.Project{
 		OwnerID:          uuid.New().String(),
 		StartUrl:         "https://example.com/",
-		MaxNumberOfLinks: 1,
+		MaxNumberOfLinks: 2,
 	}
 
 	_, _ = s.DataBase.CreateProject(&prj)
@@ -128,6 +129,7 @@ func TestProceedMessage(t *testing.T) {
 		Nodes:                 "",
 		Links:                 "",
 		TotalCollectorCounter: prj.MaxNumberOfLinks,
+		CollectorCounterQueue: 1,
 	}
 
 	_ = s.DataBase.SetProjectTemporaryData(prj.ID, &ptd)
@@ -155,8 +157,8 @@ a
 More information...
 `)
 	assert.Equal(t, result.Titles, "Example Domain\n")
-	assert.Equal(t, result.Nodes, `{"id": https://example.com/, "name": https://example.com/, "val": 0},{"id": https://www.iana.org/domains/example, "name": https://www.iana.org/domains/example, "val": 1}`)
-	assert.Equal(t, result.Links, `{"source": https://example.com/, "target": https://www.iana.org/domains/example}`)
+	assert.Equal(t, result.Nodes, `{"id": "https://example.com/", "name": "https://example.com/", "val": 0},{"id": "https://www.iana.org/domains/example", "name": "https://www.iana.org/domains/example", "val": 1}`)
+	assert.Equal(t, result.Links, `{"source": "https://example.com/", "target": "https://www.iana.org/domains/example"}`)
 	assert.Equal(t, result.TotalCollectorCounter, 0)
 }
 
@@ -182,6 +184,7 @@ func TestProceedNonExistingLink(t *testing.T) {
 		Nodes:                 "",
 		Links:                 "",
 		TotalCollectorCounter: prj.MaxNumberOfLinks,
+		CollectorCounterQueue: 1,
 	}
 
 	_ = s.DataBase.SetProjectTemporaryData(prj.ID, &ptd)
@@ -196,8 +199,10 @@ func TestProceedNonExistingLink(t *testing.T) {
 	s.Message = &msg
 
 	assert.False(t, s.WasParsed())
+	err := s.AssignLink()
+	zap.S().Debug(err)
+	assert.True(t, err == nil)
 	s.Process()
-	assert.True(t, s.AssignLink() == nil)
 
 	result, _ := s.DataBase.GetProjectTemporaryData(prj.ID)
 
@@ -205,6 +210,6 @@ func TestProceedNonExistingLink(t *testing.T) {
 	assert.Equal(t, result.Titles, "")
 	assert.Equal(t, result.Nodes, "")
 	assert.Equal(t, result.Links, "")
-	assert.Equal(t, result.TotalCollectorCounter, 1)
+	assert.Equal(t, result.TotalCollectorCounter, 0)
 	assert.Equal(t, s.DeadListSites, []string{prj.StartUrl})
 }
