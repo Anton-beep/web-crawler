@@ -75,9 +75,6 @@ export default function Project() {
     return (
         <div className="text-primary">
             <h1>Project: {projectId}</h1>
-            <div>
-                width: {dimensions.width}, height: {dimensions.height}
-            </div>
             {getContent()}
         </div>
     )
