@@ -4,13 +4,13 @@
 sleep 15
 
 echo "Запуск тестов..."
-if ! go test -count=1 -v -coverprofile=coverage.out ./...; then
+if ! go test -count=1 -v -coverprofile=coverage.profile ./...; then
   echo "Ошибка: один или несколько тестов завершились с ошибкой"
   exit 1
 fi
 
 if [ ! -f coverage.profile ]; then
-  echo "Ошибка: файл coverage.out не создан"
+  echo "Ошибка: файл coverage.profile не создан"
   exit 1
 fi
 
@@ -24,7 +24,7 @@ if [ -z "$coverage" ]; then
 fi
 
 coverage_int=$(echo "$coverage" | awk '{print int($1 + 0.5)}')
-# Checking if coverage exceeds 85%
+# Checking if coverage exceeds 60%
 if [ "$coverage_int" -lt 60 ]; then
   echo "Ошибка: покрытие слишком низкое ($coverage%)"
   exit 1
