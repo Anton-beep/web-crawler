@@ -26,9 +26,10 @@ services:
     build:
       context: ../
       dockerfile: build/collector/Dockerfile
-    container_name: collector
     networks:
       - service-network
+    deploy:
+      replicas: 10
     depends_on:
       receiver:
         condition: service_started
@@ -43,9 +44,10 @@ services:
     build:
       context: ../
       dockerfile: build/receiver/Dockerfile
-    container_name: receiver
     networks:
       - service-network
+    deploy:
+      replicas: 3
     depends_on:
       kafka:
         condition: service_healthy
