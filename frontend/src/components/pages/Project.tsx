@@ -9,6 +9,7 @@ export default function Project() {
     const [isInProcess, setIsInProcess] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [dimensions, setDimensions] = useState({width: window.innerWidth, height: window.innerHeight});
 
     useEffect(() => {
         Api.getProject(projectId as string).then((response) => {
@@ -38,6 +39,18 @@ export default function Project() {
         });
     }, [projectId]);
 
+    useEffect(() => {
+        const handleResize = () => {
+            setDimensions({
+                width: window.innerWidth,
+                height: window.innerHeight,
+            });
+        };
+        window.addEventListener("resize", handleResize);
+
+        return () => window.removeEventListener("resize", handleResize);
+    }, [loading, isInProcess, error]);
+
     const getContent = () => {
         if (loading) {
             return (
@@ -52,13 +65,19 @@ export default function Project() {
         } else if (error) {
             return <p className="text-error">{error}</p>;
         } else {
-            return <SitesGraph width={1600} height={1100} backgroundCol={"#18181b"} data={data}/>;
+            return (
+                // don't ask me about dimensions.width * 0.1
+                <SitesGraph width={dimensions.width - dimensions.width * 0.05} height={dimensions.height} backgroundCol={"#18181b"} data={data}/>
+            );
         }
     }
 
     return (
         <div className="text-primary">
             <h1>Project: {projectId}</h1>
+            <div>
+                width: {dimensions.width}, height: {dimensions.height}
+            </div>
             {getContent()}
         </div>
     )
