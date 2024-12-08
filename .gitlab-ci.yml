@@ -22,8 +22,7 @@ unit tests:
     - cp configs/.env.template configs/.env
     - cp configs/Docker.env.template configs/Docker.env
     - go mod download
-    - go test -coverprofile=cover.profile ./...
-    - go tool cover -func cover.profile
+    - go test -v ./...
 
 build integration tests:
   stage: build
