@@ -22,65 +22,63 @@ services:
     networks:
       - service-network
 
-#  collector:
-#    build:
-#      context: ../
-#      dockerfile: build/collector/Dockerfile
-#    container_name: collector
-#    networks:
-#      - service-network
-#    depends_on:
-#      receiver:
-#        condition: service_started
-#      kafka:
-#        condition: service_healthy
-#      postgres:
-#        condition: service_healthy
-#      redis:
-#         condition: service_healthy
+  collector:
+    build:
+      context: ../
+      dockerfile: build/collector/Dockerfile
+    container_name: collector
+    networks:
+      - service-network
+    depends_on:
+      receiver:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+         condition: service_healthy
 
-#  receiver:
-#    build:
-#      context: ../
-#      dockerfile: build/receiver/Dockerfile
-#    container_name: receiver
-#    networks:
-#      - service-network
-#    depends_on:
-#      kafka:
-#        condition: service_healthy
-#      postgres:
-#        condition: service_healthy
-#      redis:
-#         condition: service_healthy
+  receiver:
+    build:
+      context: ../
+      dockerfile: build/receiver/Dockerfile
+    container_name: receiver
+    networks:
+      - service-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+         condition: service_healthy
 
   #TODO: remove dummy site from prod
-#  dummy_site:
-#    build:
-#      context: ../
-#      dockerfile: build/dummySite/Dockerfile
-#    container_name: dummySite
-#    networks:
-#      - service-network
+  dummy_site:
+    build:
+      context: ../
+      dockerfile: build/dummySite/Dockerfile
+    container_name: dummySite
+    networks:
+      - service-network
 
   frontend:
     build:
       context: ../
       dockerfile: build/frontend/Dockerfile
     container_name: frontend
-    ports:
-      - "5000:5000"
     networks:
       - service-network
 
   nginx:
     image: nginx
     ports:
-      - "80:80"
+      - "85:80"
     volumes:
       - ../configs/nginx/:/etc/nginx/
     depends_on:
-#      - receiver
+      - receiver
       - frontend
     networks:
       - service-network

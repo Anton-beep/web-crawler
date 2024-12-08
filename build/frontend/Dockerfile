@@ -13,4 +13,3 @@ RUN npm run build
 RUN npm install -g http-server
 
 CMD ["http-server", "./dist", "-p", "5000"]
-#CMD ["ls", "dist"]
