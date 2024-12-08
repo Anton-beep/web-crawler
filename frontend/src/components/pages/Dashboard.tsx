@@ -24,7 +24,7 @@ export default function Dashboard() {
     return (
         <div className="mx-4">
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
+                <DialogTrigger>
                     <Button variant="jumping" className="bg-green-600 text-primary mx-4" onClick={() => setIsCreateDialogOpen(true)}>Create Project</Button>
                 </DialogTrigger>
                 <CreateProjectCard/>

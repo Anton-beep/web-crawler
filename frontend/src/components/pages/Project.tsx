@@ -35,6 +35,8 @@ export default function Project() {
 
             setLoading(false);
         }).catch((e) => {
+            setError("Project not found");
+            setLoading(false);
             console.error(e);
         });
     }, [projectId]);
