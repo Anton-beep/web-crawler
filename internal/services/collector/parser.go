@@ -10,35 +10,59 @@ import (
 	"web-crawler/internal/utils"
 )
 
+// AddTitle adds title to project temporary data
 func (s *Server) AddTitle(title string) {
 	s.ProjectTemporaryData.Titles += title + "\n"
 }
 
+// AddText adds text to project temporary data
 func (s *Server) AddText(text string) {
 	s.ProjectTemporaryData.Text += text + "\n"
 }
 
-func (s *Server) AddNode(link string, depth int) {
+// AddNode adds node to project temporary data
+// If node already exists, or TotalCollectorCounter
+// is less than 0, does nothing
+func (s *Server) AddNode(link string, depth int) bool {
+	actualData, err := s.DataBase.GetProjectTemporaryData(s.Message.ProjectId)
+	if err != nil {
+		zap.S().Errorf("failed to get actual project temporary data: %s", err)
+		return false
+	}
+
+	if actualData.TotalCollectorCounter <= 0 {
+		return false
+	}
+
+	actualData.TotalCollectorCounter--
+
+	err = s.DataBase.SetProjectTemporaryData(s.Message.ProjectId, actualData)
+	if err != nil {
+		zap.S().Errorf("failed to set actual project temporary data: %s", err)
+	}
+
 	slag := GenerateNodeSlug(s.Message.ProjectId, link)
 
 	status, err := s.DataBase.CheckSlug(slag)
 	if err != nil {
 		zap.S().Errorf("failed to check status of node slug: %s", err)
-		return
+		return false
 	}
 	if status {
-		return
+		return true
 	}
 
-	format := `{"id": %s, "name": %s, "val": %d},`
+	format := `{"id": "%s", "name": "%s", "val": %d},`
 	s.ProjectTemporaryData.Nodes += fmt.Sprintf(format, link, link, depth)
 
 	err = s.DataBase.UpdateSlug(slag, true)
 	if err != nil {
 		zap.S().Errorf("failed to update node slug: %s", err)
 	}
+	return true
 }
 
+// AddLink adds link to project temporary data
 func (s *Server) AddLink(link string) {
 	zap.S().Debug("AddLink ", link)
 	status, err := s.DataBase.CheckSlug(GenerateLinkSlug(s.Message.ProjectId, link))
@@ -46,14 +70,17 @@ func (s *Server) AddLink(link string) {
 		zap.S().Errorf("failed to check link status, CheckSlug returned err: %s", err)
 	}
 	if status {
-		format := `{"source": %s, "target": %s},`
+		format := `{"source": "%s", "target": "%s"},`
 		s.ProjectTemporaryData.Links += fmt.Sprintf(format, s.Message.Link, link)
 		return
 	}
 
-	s.AddNode(link, s.Message.Depth+1)
+	nodeStatus := s.AddNode(link, s.Message.Depth+1)
+	if !nodeStatus {
+		return
+	}
 
-	format := `{"source": %s, "target": %s},`
+	format := `{"source": "%s", "target": "%s"},`
 	s.ProjectTemporaryData.Links += fmt.Sprintf(format, s.Message.Link, link)
 
 	if s.Message.Depth < s.MaxDepth {
@@ -65,6 +92,8 @@ func (s *Server) AddLink(link string) {
 	}
 }
 
+// PrepareLink prepares link for
+// adding to project temporary data
 func (s *Server) PrepareLink(link string) {
 	if utils.IsCorrectLink(link) {
 		s.AddLink(link)
@@ -78,6 +107,7 @@ func (s *Server) PrepareLink(link string) {
 	}
 }
 
+// GetNode makes GET request to link and returns html.Node
 func (s *Server) GetNode(link string) (*html.Node, error) {
 	client := &http.Client{}
 
@@ -106,6 +136,7 @@ func (s *Server) GetNode(link string) (*html.Node, error) {
 	return doc, nil
 }
 
+// ParseNodes parses html.Node and adds
 func (s *Server) ParseNodes(n *html.Node) {
 	if _, ok := s.TextTags[n.Data]; ok {
 		if n.FirstChild != nil {

@@ -9,19 +9,21 @@ import (
 	"web-crawler/internal/config"
 )
 
-// 💀 💀 💀
+// SitesKafka is a struct that contains the kafka connection and the kafka config
 type SitesKafka struct {
 	cfg      *config.KafkaConfig
 	producer *kafka.Conn
 	consumer *kafka.Reader
 }
 
+// Message is a struct that contains the link to parse, the project id and the depth
 type Message struct {
 	Link      string `json:"link"`
 	ProjectId string `json:"projectId"`
 	Depth     int    `json:"depth"`
 }
 
+// New is a function that creates a new SitesKafka struct
 func New(cfg *config.Config, createProducer bool, createConsumer bool) *SitesKafka {
 	var conn *kafka.Conn
 	var r *kafka.Reader
@@ -39,6 +41,7 @@ func New(cfg *config.Config, createProducer bool, createConsumer bool) *SitesKaf
 	return &SitesKafka{cfg: &cfg.Kafka, producer: conn, consumer: r}
 }
 
+// AddSiteToParse is a function that adds a site to parse to the kafka topic
 func (s SitesKafka) AddSiteToParse(link string, projectId string, depth int) error {
 	// to produce message
 
@@ -67,6 +70,7 @@ func (s SitesKafka) AddSiteToParse(link string, projectId string, depth int) err
 	return nil
 }
 
+// CheckSitesToParse is a function that reads a message from the kafka topic
 func (s SitesKafka) CheckSitesToParse() (*Message, error) {
 	// make a new reader that consumes from topic-A
 	m, err := s.consumer.ReadMessage(context.Background())
@@ -82,6 +86,7 @@ func (s SitesKafka) CheckSitesToParse() (*Message, error) {
 	return &toReturn, nil
 }
 
+// Close is a function that closes the kafka connection
 func (s SitesKafka) Close() error {
 	if err := s.producer.Close(); err != nil {
 		return err

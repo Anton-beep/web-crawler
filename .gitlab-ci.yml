@@ -3,7 +3,6 @@ stages:
   - unit tests
   - build
   - integration tests
-  - deploy
 
 linting:
   stage: linting
@@ -18,11 +17,12 @@ unit tests:
   stage: unit tests
   needs: []
   image: golang:1.22-alpine
+  coverage: /total:\s+\(statements\)\s+\d+.\d+%/
   script:
     - cp configs/.env.template configs/.env
     - cp configs/Docker.env.template configs/Docker.env
     - go mod download
-    - go test -count=1 -cover -v ./...
+    - go test -v ./...
 
 build integration tests:
   stage: build
@@ -40,18 +40,4 @@ integration tests:
     - docker compose -f deployments/docker-compose-dev.yml down
     - docker compose -f deployments/docker-compose-dev.yml up -d
     - docker run --network=deployments_service-network --name test-container tests:latest
-
-deploy job:
-  stage: deploy
-  needs: ["linting", "unit tests", "integration tests"]
-  script:
-    - cp configs/Docker.env.template configs/Docker.env
-    - cp configs/Docker.env.template configs/.env
-    - docker compose -f ./deployments/docker-compose.yml down -v
-    - docker volume prune -f
-    - docker compose -f ./deployments/docker-compose.yml up -d
-    # Since we are not in production mode, we must turn off the containers after pipeline
-    - docker rm -f test-container || true
-    - docker compose -f ./deployments/docker-compose-dev.yml down -v
-    - docker compose -f ./deployments/docker-compose.yml down -v
-    - docker volume prune -f
+  coverage: /total:\s+\(statements\)\s+\d+.\d+%/

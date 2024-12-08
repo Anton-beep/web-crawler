@@ -17,11 +17,23 @@ import (
 	"web-crawler/internal/models"
 )
 
+// DataBase is a struct that contains the
+// connection to the Postgres and Redis databases
 type DataBase struct {
 	postgres *sqlx.DB
 	redis    *redis.Client
 }
 
+// GetProjectMaxDepth is a function that returns
+// the maximum depth of the project
+//
+// params:
+// - id: id of project ocf type uuid
+//
+// returns:
+//   - int: the maximum depth of the project
+//   - error: an error if the project with the
+//     given id doesn't exist
 func (d DataBase) GetProjectMaxDepth(id string) (int, error) {
 	err := d.checkIfIdExists(id)
 	if err != nil {
@@ -48,6 +60,15 @@ func (d DataBase) GetProjectMaxDepth(id string) (int, error) {
 	return depth, nil
 }
 
+// CheckCollectorCounter is a function that
+// checks if the collector counter is negative
+//
+// params:
+// - id: id of project ocf type uuid
+//
+// returns:
+//   - error: an error if the project with the
+//     given id doesn't exist or the collector counter is negative
 func (d DataBase) CheckCollectorCounter(id string) error {
 	err := d.checkIfIdExists(id)
 	if err != nil {
@@ -90,6 +111,13 @@ func (d DataBase) checkIfIdExists(id string) error {
 	return nil
 }
 
+// GetProject is a function that returns the project by id
+//
+// params:
+// - id: id of project ocf type uuid
+//
+// returns:
+// - *Project: the project with the given id
 func (d DataBase) GetProject(id string) (*models.Project, error) {
 	err := d.checkIfIdExists(id)
 	if err != nil {
@@ -140,6 +168,15 @@ func (d DataBase) GetProject(id string) (*models.Project, error) {
 	return &project, nil
 }
 
+// GetProjectTemporaryData is a function that returns
+// the temporary data of the project by id
+//
+// params:
+// - id: id of project ocf type uuid
+//
+// returns:
+//   - *ProjectTemporaryData: the temporary data of
+//     the project with the given id
 func (d DataBase) GetProjectTemporaryData(id string) (*models.ProjectTemporaryData, error) {
 	val, err := d.redis.Get(context.Background(), id).Result()
 	if err != nil {
@@ -160,6 +197,13 @@ func (d DataBase) GetProjectTemporaryData(id string) (*models.ProjectTemporaryDa
 	return &ptd, nil
 }
 
+// CreateProject is a function that creates a new project
+//
+// params:
+// - project: the project to create
+//
+// returns:
+// - string: the id of the created project
 func (d DataBase) CreateProject(project *models.Project) (string, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
@@ -188,6 +232,15 @@ func (d DataBase) CreateProject(project *models.Project) (string, error) {
 	return generatedID, nil
 }
 
+// SetProjectTemporaryData is a function that sets
+// the temporary data of the project
+//
+// params:
+// - id: id of project ocf type uuid
+// - data: the temporary data of the project
+//
+// returns:
+// - error: an error if the temporary data of the project
 func (d DataBase) SetProjectTemporaryData(id string, data *models.ProjectTemporaryData) error {
 	val, err := json.Marshal(data)
 	if err != nil {
@@ -199,6 +252,13 @@ func (d DataBase) SetProjectTemporaryData(id string, data *models.ProjectTempora
 	return nil
 }
 
+// UpdateProject is a function that updates the project
+//
+// params:
+// - project: the project to update
+//
+// returns:
+// - error: an error if the project with the given id doesn't exist
 func (d DataBase) UpdateProject(project *models.Project) error {
 	err := d.checkIfIdExists(project.ID)
 	if err != nil {
@@ -236,6 +296,13 @@ func (d DataBase) UpdateProject(project *models.Project) error {
 	return nil
 }
 
+// DeleteProject is a function that deletes the project
+//
+// params:
+// - id: id of project ocf type uuid
+//
+// returns:
+// - error: an error if the project with the given id doesn't exist
 func (d DataBase) DeleteProject(id string) error {
 	err := d.checkIfIdExists(id)
 	if err != nil {
@@ -259,6 +326,14 @@ func (d DataBase) DeleteProject(id string) error {
 	return nil
 }
 
+// DeleteProjectTemporaryData is a function that deletes
+// the temporary data of the project
+//
+// params:
+// - id: id of project ocf type uuid
+//
+// returns:
+// - error: an error if the temporary data of the project
 func (d DataBase) DeleteProjectTemporaryData(id string) error {
 	_, err := d.GetProjectTemporaryData(id)
 	if err != nil {
@@ -276,6 +351,14 @@ func (d DataBase) DeleteProjectTemporaryData(id string) error {
 	return nil
 }
 
+// GetProjectsByOwnerId is a function that returns
+// the projects by owner id
+//
+// params:
+// - ownerId: id of owner ocf type uuid
+//
+// returns:
+// - []*ShortProject: the projects with the given owner id
 func (d DataBase) GetProjectsByOwnerId(ownerId string) ([]*models.ShortProject, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
@@ -312,6 +395,13 @@ func (d DataBase) GetProjectsByOwnerId(ownerId string) ([]*models.ShortProject, 
 	return projects, nil
 }
 
+// CheckSlug is a function that checks if the slug exists
+//
+// params:
+// - slag: the slug to check
+//
+// returns:
+// - bool: true if the slug exists, false otherwise
 func (d DataBase) CheckSlug(slag string) (bool, error) {
 	val, err := d.redis.Get(context.Background(), slag).Result()
 	if err != nil {
@@ -324,11 +414,21 @@ func (d DataBase) CheckSlug(slag string) (bool, error) {
 	return val == "1", nil
 }
 
+// UpdateSlug is a function that updates the slug
+//
+// params:
+// - slag: the slug to update
+// - status: new status of the slug
+//
+// returns:
+// - error: an error if the slug wasn't updated
 func (d DataBase) UpdateSlug(slag string, status bool) error {
 	err := d.redis.Set(context.Background(), slag, status, 0).Err()
 	return err
 }
 
+// NewDB is a function that creates a new DataBase struct
+// DataBase implements the models.DataBase interface
 func NewDB(cfg *config.Config) models.DataBase {
 	// 🤓🤓🤓
 	postgresConnect, err := connection.NewPostgresConnect(cfg.Postgres)

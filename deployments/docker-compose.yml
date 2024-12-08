@@ -22,12 +22,57 @@ services:
     networks:
       - service-network
 
+  collector:
+    build:
+      context: ../
+      dockerfile: build/collector/Dockerfile
+    networks:
+      - service-network
+    deploy:
+      replicas: 10
+    depends_on:
+      receiver:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+         condition: service_healthy
+
+  receiver:
+    build:
+      context: ../
+      dockerfile: build/receiver/Dockerfile
+    networks:
+      - service-network
+    deploy:
+      replicas: 3
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+         condition: service_healthy
+
+  frontend:
+    build:
+      context: ../
+      dockerfile: build/frontend/Dockerfile
+    container_name: frontend
+    networks:
+      - service-network
+
   nginx:
     image: nginx
     ports:
-      - "80:80"
+      - "85:80"
     volumes:
       - ../configs/nginx/:/etc/nginx/
+    depends_on:
+      - receiver
+      - frontend
     networks:
       - service-network
 
@@ -38,8 +83,8 @@ services:
       - ../configs/Docker.env
     networks:
       - service-network
-    volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+#    volumes:
+#      - ./postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD", "pg_isready" ]
       interval: 10s
@@ -49,8 +94,8 @@ services:
   redis:
     image: redis:7
     container_name: redis_container
-    volumes:
-      - ./redis_data:/data
+#    volumes:
+#      - ./redis_data:/data
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 1s

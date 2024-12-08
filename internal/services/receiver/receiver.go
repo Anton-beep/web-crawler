@@ -32,16 +32,17 @@ func New(port int, cfgPath ...string) *Service {
 	}
 }
 
+// Start starts the receiver server
 func (r *Service) Start() {
 	e := echo.New()
 
 	e.Use(middleware.CORS())
 
-	e.GET("/ping", Pong)
-	e.POST("/project/create", r.CreateProject)
-	e.GET("/project/get/:id", r.GetProject)
-	e.GET("/project/getAllShort", r.GetAllShort)
-	e.DELETE("/project/delete/:id", r.DeleteProject)
+	e.GET("/api/ping", Pong)
+	e.POST("/api/project/create", r.CreateProject)
+	e.GET("/api/project/get/:id", r.GetProject)
+	e.GET("/api/project/getAllShort", r.GetAllShort)
+	e.DELETE("/api/project/delete/:id", r.DeleteProject)
 
 	err := e.Start(":" + strconv.Itoa(r.port))
 	if err != nil {

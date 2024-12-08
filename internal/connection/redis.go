@@ -12,6 +12,7 @@ type RedisConfig struct {
 	Port int    `env:"REDIS_PORT" env-default:"6379"`
 }
 
+// NewRedisConnect is a function that creates a new connection to a Redis database
 func NewRedisConnect(cfg RedisConfig) (*redis.Client, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
@@ -20,7 +21,7 @@ func NewRedisConnect(cfg RedisConfig) (*redis.Client, error) {
 	})
 	pong := rdb.Ping(context.Background())
 	if pong.Err() != nil {
-		zap.S().Fatal(fmt.Errorf("failed to connect to redis: %w", pong.Err()))
+		return nil, pong.Err()
 	}
 	zap.S().Info("Connected to Redis")
 	return rdb, nil

@@ -1,175 +1,136 @@
-# Production
+# :globe_with_meridians: Web Crawler
 
-To run a project in production mode
+---
 
-- Set up environment variables in the `configs/Docker.env` file use `configs/Docker.env.template` for this
-- Install [Docker](https://www.docker.com)
-- Run the command
+<div align="center">
+
+<img src="frontend/public/web_crawler_logo.svg" alt="Web Crawler Logo" width="200" height="200">
+
+[![Build Status](https://gitlab.crja72.ru/gospec/go1/web-crawler/badges/main/pipeline.svg)](https://gitlab.crja72.ru/gospec/go1/web-crawler/-/pipelines)
+[![Coverage Status](https://gitlab.crja72.ru/gospec/go1/web-crawler/badges/main/coverage.svg)](https://gitlab.crja72.ru/gospec/go1/web-crawler/-/pipelines)
+
+</div>
+
+Web Crawler is a scalable and efficient tool for collecting information from websites. It supports crawling web pages, extracting their content, and following links to other pages. Designed with a microservice architecture for performance and flexibility.
+
+[//]: # (Cool Screenshots here)
+
+---
+
+## Installation
+
+### Production
+
+To run the project in production mode:
+
+1. Configure environment variables in `configs/Docker.env` (use `configs/Docker.env.template` as a template).
+2. Copy them into `configs/.env`:
+   ```bash
+   cp configs/Docker.env configs/.env
+   ```
+2. Install [Docker](https://www.docker.com).
+3. Run the following command:
+   ```bash
+   docker compose -f deployments/docker-compose.yml up --build
+   ```
+
+### Development
+
+#### Pre-setup
+
+To run the project in development mode:
+1. Configure environment variables in `configs/.env` (use `configs/.env.template` as a template).
+2. Install [Docker](https://www.docker.com/).
+3. Run the following command:
+    ```bash
+    docker compose -f deployments/docker-compose-dev.yml up --build
+    ```
+   In this mode, all third-party containers will be deployed with ports forwarded to `localhost`.
+4. If you did not change the ports in `configs/.env`, then the web interface will be available at `http://localhost:85`.
+
+#### Setup
+
+1. Install [Go](https://golang.org/).
+2. Install dependencies:
+    ```bash
+    go mod download
+    ```
+3. To run frontend:
+    ```bash
+    cd frontend
+    npm run dev
+    ```
+4. Install [Npm](https://nodejs.org/en/download/package-manager)
+5. To run backend service run the following command:
+    ```bash
+    go run cmd/<path_to_service>/<service>.go
+    ```
+   
+---
+
+### Testing
+
+#### Unit Tests
+
+To run backend unit tests, execute the following command:
 ```bash
-docker compose -f deployments/docker-compose.yml up --build
+go test ./... -v
 ```
 
-# Dev
-
-## Pre-setting
-
-To run a project in development mode
-- Set up environment variables in the `configs/.env` use `configs/.env.template` for this.
-- Install [Docker](https://www.docker.com)
-- Run the command
-```bash
-docker compose -f deployments/docker-compose-dev.yml up --build
-```
-In this mode, all third-party containers will be deployed. The ports will be forwarded to localhost.
-
-If you need to restart the project, run the command:
-```bash
-docker compose -f deployments/docker-compose-dev.yml down
-```
-
-and clean volumes (**delete data**):
-```bash
-docker compose -f deployments/docker-compose-dev.yml down -v
-```
-
-
-## How to start services
-
-### Backend
-
-- Place the executable file at `cmd/<your_service>/<file_name>.go`
-- Follow this path
-```bash
-cd cmd/<your_service>
-```
-- Run the executable file
-```bash
-go run <file_name>.go
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm run dev
-```
-
-## How to write tests
-
-If you are writing unit tests, then place them along the path `test/<name_of_package>/<test_name>_test.go`
-
-If you are writing integration tests, then place them in the path `test/integrationTests/<test_name>_test.go`.
-At the beginning of each test, check that the environment variable `IS_RAN_IN_DOCKER` is true. 
-This ensures that tests run alongside running containers.
-
-For example, you can do this as follows
-
-```go
-
-package integrationTests_test
-
-import (
-	"testing"
-	"web-crauler/internal/config"
-	"web-crauler/internal/repository"
-)
-
-var (
-	db  models.DataBase
-	cfg *config.Config
-)
-
-func TestMain(m *testing.M) {
-	db = repository.NewDB()
-	cfg = config.NewConfig()
-	code := m.Run()
-	os.Exit(code)
-}
-
-func SomeTests(t *testing.T) {
-	if !cfg.IsRanInDocker {
-		return
-	}
-	// ...
-}
-```
-
-## Folder structure
-
-Follow this [standard structure](https://github.com/golang-standards/project-layout) of a go project
-
-
-## Linter
-
-## Backend
-
-To run the linter, run the command (install [golangci-lint](https://golangci-lint.run/welcome/install/)):
-```shell
-golangci-lint run -c configs/.golangci.yml
-```
-
-## Frontend
-
-To run the linter, run the command:
-```shell
-cd frontend
-npm run lint
-```
-
-
-## Testing
-
-### Unit tests
-
-#### Backend
-
-To run unit tests, run the command
-```bash
-go test -cover -v ./...
-```
-The console will display the testing results, as well as the percentage of test coverage
-
-#### Frontend
-
-To run unit tests, run the command
+To run frontend unit tests, execute the following command:
 ```bash
 cd frontend
 npm run test
 ```
 
-### Integration tests
+#### Integration Tests
 
-To run integration tests,
-- Set up environment variables in the `configs/.env`, use `configs/.env.template` for this
-- Set the value of the `RUN_INTEGRATION_TESTS` variable to `true`
-- Install [Docker](https://www.docker.com)
-- Run the command
+1. Start the project in development mode.
+2. Run the following command:
+    ```bash
+    go test ./... -v
+    ```
+
+To view detailed test coverage:
 ```bash
-docker compose -f deployments/docker-compose-dev.yml up --build
+go test ./... -coverprofile coverage.out
+go tool cover -html=coverage.out -o coverage.html
 ```
-In this mode, all third-party containers will be deployed. The ports will be forwarded to localhost.
-Next run the command
+Open `cover.html` to view the detailed coverage report.
+
+---
+
+### Linting
+
+#### Backend
+
+To lint the backend, install [golangci-lint](https://golangci-lint.run/usage/install/):
 ```bash
-go test -cover -v ./...
+golangci-lint run -c configs/.golangci.yml
 ```
 
-### Detailed description of coverage
+#### Frontend
 
-To get a detailed description of test coverage, run the commands
+To lint the frontend, run the following command:
 ```bash
-go test -v -coverprofile cover.out ./...
-go tool cover -html cover.out -o cover.html 
+cd frontend
+npm run lint
 ```
-Open the `cover.html` file. It will contain fragments of code covered and not covered by tests.
-This method works with both unit tests and integration tests.
 
-# Documentation
+---
 
-## API
+### Documentation
 
-To build documentation install redoc (don't forget to [install npm](https://nodejs.org/en/download/package-manager)):
-```shell
+#### API Documentation
+
+To build the API documentation, run the following command:
+```bash
 npx @redocly/cli build-docs api/openapi.json -o docs/api/apiDocumentation.html
 ```
-
 Documentation is now available at `docs/api/apiDocumentation.html`
+
+---
+
+### Folder Structure
+
+This project follows the [Standard Go Project Layout](https://github.com/golang-standards/project-layout)

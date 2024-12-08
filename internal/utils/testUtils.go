@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// GetReaderFromStruct returns a reader from a struct
 func GetReaderFromStruct(s interface{}) io.Reader {
 	res, err := json.Marshal(s)
 

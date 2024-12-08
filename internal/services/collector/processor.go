@@ -3,7 +3,6 @@ package collector
 import (
 	"go.uber.org/zap"
 	"strings"
-	"time"
 	"web-crawler/internal/models"
 )
 
@@ -15,8 +14,17 @@ func GenerateNodeSlug(projectId, link string) string {
 	return projectId + "#id#" + link
 }
 
+// GetDomain returns domain from url
+func GetDomain(url string) string {
+	if strings.Count(url, "http") > 0 {
+		tags := strings.Split(url, "/")
+		return tags[0] + "//" + tags[2]
+	}
+	return "http://" + url
+}
+
+// WasParsed checks if link was parsed
 func (s *Server) WasParsed() bool {
-	time.Sleep(1 * time.Second)
 	slug := GenerateLinkSlug(s.Message.ProjectId, s.Message.Link)
 	status, err := s.DataBase.CheckSlug(slug)
 	if err != nil {
@@ -25,6 +33,7 @@ func (s *Server) WasParsed() bool {
 	return status
 }
 
+// AssignLink assigns link to collector
 func (s *Server) AssignLink() error {
 	slug := GenerateLinkSlug(s.Message.ProjectId, s.Message.Link)
 	err := s.DataBase.UpdateSlug(slug, true)
@@ -37,22 +46,28 @@ func (s *Server) AssignLink() error {
 		return err
 	}
 	s.ProjectTemporaryData = &models.ProjectTemporaryData{}
-	tags := strings.Split(s.Message.Link, "/")
-	s.Domain = tags[0] + "//" + tags[2]
+	s.Domain = GetDomain(s.Message.Link)
+
+	if strings.Count(s.Message.Link, "http") == 0 {
+		s.Message.Link = "http://" + s.Message.Link
+	}
+
 	s.MaxDepth, err = s.DataBase.GetProjectMaxDepth(s.Message.ProjectId)
 	return err
 }
 
+// WriteData writes data to cache database
 func (s *Server) WriteData() {
 	actualData, err := s.DataBase.GetProjectTemporaryData(s.Message.ProjectId)
 	if err != nil {
 		zap.S().Errorf("failed to get actual project temporary data: %s", err)
 	}
 
+	zap.S().Info(actualData.TotalCollectorCounter)
+
 	actualData.Titles += s.ProjectTemporaryData.Titles
 	actualData.Text += s.ProjectTemporaryData.Text
 	actualData.Links += s.ProjectTemporaryData.Links
-	actualData.TotalCollectorCounter--
 	actualData.Nodes += s.ProjectTemporaryData.Nodes
 	actualData.CollectorCounterQueue += s.NewCollectors - 1
 	actualData.DeadListQueueSites = append(actualData.DeadListQueueSites, s.DeadListSites...)
@@ -67,7 +82,7 @@ func (s *Server) WriteData() {
 			zap.S().Errorf("failed to get project: %s", err)
 		} else {
 			prj.Processing = false
-			prj.WebGraph = `{"node": [` + actualData.Nodes + `], "link": [` + actualData.Links + `]}`
+			prj.WebGraph = `{"nodes": [` + actualData.Nodes + `], "links": [` + actualData.Links + `]}`
 			prj.DlqSites = actualData.DeadListQueueSites
 			err = s.DataBase.UpdateProject(prj)
 			if err != nil {
@@ -82,6 +97,7 @@ func (s *Server) WriteData() {
 	}
 }
 
+// Clear clears server data
 func (s *Server) Clear() {
 	s.ProjectTemporaryData = &models.ProjectTemporaryData{
 		Text:                  "",
@@ -96,6 +112,7 @@ func (s *Server) Clear() {
 	s.NewCollectors = 0
 }
 
+// Process makes request to site and parses it
 func (s *Server) Process() {
 	s.AddNode(s.Message.Link, s.Message.Depth)
 	node, err := s.GetNode(s.Message.Link)
