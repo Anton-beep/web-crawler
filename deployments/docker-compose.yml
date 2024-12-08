@@ -12,8 +12,6 @@ services:
     container_name: kafka
     depends_on:
       - zookeeper
-    ports:
-      - "9092:9092"
     env_file:
       - ../configs/Docker.env
     healthcheck:
@@ -24,44 +22,54 @@ services:
     networks:
       - service-network
 
-  collector:
-    build:
-      context: ../
-      dockerfile: build/collector/Dockerfile
-    container_name: collector
-    networks:
-      - service-network
-    depends_on:
-      kafka:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-      redis:
-         condition: service_healthy
+#  collector:
+#    build:
+#      context: ../
+#      dockerfile: build/collector/Dockerfile
+#    container_name: collector
+#    networks:
+#      - service-network
+#    depends_on:
+#      receiver:
+#        condition: service_started
+#      kafka:
+#        condition: service_healthy
+#      postgres:
+#        condition: service_healthy
+#      redis:
+#         condition: service_healthy
 
-  receiver:
-    build:
-      context: ../
-      dockerfile: build/receiver/Dockerfile
-    container_name: receiver
-    networks:
-      - service-network
-    depends_on:
-      kafka:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-      redis:
-         condition: service_healthy
+#  receiver:
+#    build:
+#      context: ../
+#      dockerfile: build/receiver/Dockerfile
+#    container_name: receiver
+#    networks:
+#      - service-network
+#    depends_on:
+#      kafka:
+#        condition: service_healthy
+#      postgres:
+#        condition: service_healthy
+#      redis:
+#         condition: service_healthy
 
   #TODO: remove dummy site from prod
-  dummy_site:
+#  dummy_site:
+#    build:
+#      context: ../
+#      dockerfile: build/dummySite/Dockerfile
+#    container_name: dummySite
+#    networks:
+#      - service-network
+
+  frontend:
     build:
       context: ../
-      dockerfile: build/dummySite/Dockerfile
-    container_name: dummySite
+      dockerfile: build/frontend/Dockerfile
+    container_name: frontend
     ports:
-      - "9090:9090"
+      - "5000:5000"
     networks:
       - service-network
 
@@ -72,7 +80,8 @@ services:
     volumes:
       - ../configs/nginx/:/etc/nginx/
     depends_on:
-      - receiver
+#      - receiver
+      - frontend
     networks:
       - service-network
 
@@ -85,8 +94,6 @@ services:
       - service-network
 #    volumes:
 #      - ./postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: [ "CMD", "pg_isready" ]
       interval: 10s
@@ -103,8 +110,6 @@ services:
       interval: 1s
       timeout: 10s
       retries: 10
-    ports:
-      - "6379:6379"
     env_file:
       - ../configs/Docker.env
     networks:
