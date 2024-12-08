@@ -14,6 +14,14 @@ func GenerateNodeSlug(projectId, link string) string {
 	return projectId + "#id#" + link
 }
 
+func GetDomain(url string) string {
+	if strings.Count(url, "http") > 0 {
+		tags := strings.Split(url, "/")
+		return tags[0] + "//" + tags[2]
+	}
+	return "http://" + url
+}
+
 func (s *Server) WasParsed() bool {
 	slug := GenerateLinkSlug(s.Message.ProjectId, s.Message.Link)
 	status, err := s.DataBase.CheckSlug(slug)
@@ -35,8 +43,12 @@ func (s *Server) AssignLink() error {
 		return err
 	}
 	s.ProjectTemporaryData = &models.ProjectTemporaryData{}
-	tags := strings.Split(s.Message.Link, "/")
-	s.Domain = tags[0] + "//" + tags[2]
+	s.Domain = GetDomain(s.Message.Link)
+
+	if strings.Count(s.Message.Link, "http") == 0 {
+		s.Message.Link = "http://" + s.Message.Link
+	}
+
 	s.MaxDepth, err = s.DataBase.GetProjectMaxDepth(s.Message.ProjectId)
 	return err
 }
@@ -47,10 +59,11 @@ func (s *Server) WriteData() {
 		zap.S().Errorf("failed to get actual project temporary data: %s", err)
 	}
 
+	zap.S().Info(actualData.TotalCollectorCounter)
+
 	actualData.Titles += s.ProjectTemporaryData.Titles
 	actualData.Text += s.ProjectTemporaryData.Text
 	actualData.Links += s.ProjectTemporaryData.Links
-	actualData.TotalCollectorCounter--
 	actualData.Nodes += s.ProjectTemporaryData.Nodes
 	actualData.CollectorCounterQueue += s.NewCollectors - 1
 	actualData.DeadListQueueSites = append(actualData.DeadListQueueSites, s.DeadListSites...)
@@ -65,7 +78,7 @@ func (s *Server) WriteData() {
 			zap.S().Errorf("failed to get project: %s", err)
 		} else {
 			prj.Processing = false
-			prj.WebGraph = `{"node": [` + actualData.Nodes + `], "link": [` + actualData.Links + `]}`
+			prj.WebGraph = `{"nodes": [` + actualData.Nodes + `], "links": [` + actualData.Links + `]}`
 			prj.DlqSites = actualData.DeadListQueueSites
 			err = s.DataBase.UpdateProject(prj)
 			if err != nil {

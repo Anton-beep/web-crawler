@@ -18,25 +18,43 @@ func (s *Server) AddText(text string) {
 	s.ProjectTemporaryData.Text += text + "\n"
 }
 
-func (s *Server) AddNode(link string, depth int) {
+func (s *Server) AddNode(link string, depth int) bool {
+	actualData, err := s.DataBase.GetProjectTemporaryData(s.Message.ProjectId)
+	if err != nil {
+		zap.S().Errorf("failed to get actual project temporary data: %s", err)
+		return false
+	}
+
+	if actualData.TotalCollectorCounter <= 0 {
+		return false
+	}
+
+	actualData.TotalCollectorCounter--
+
+	err = s.DataBase.SetProjectTemporaryData(s.Message.ProjectId, actualData)
+	if err != nil {
+		zap.S().Errorf("failed to set actual project temporary data: %s", err)
+	}
+
 	slag := GenerateNodeSlug(s.Message.ProjectId, link)
 
 	status, err := s.DataBase.CheckSlug(slag)
 	if err != nil {
 		zap.S().Errorf("failed to check status of node slug: %s", err)
-		return
+		return false
 	}
 	if status {
-		return
+		return true
 	}
 
-	format := `{"id": %s, "name": %s, "val": %d},`
+	format := `{"id": "%s", "name": "%s", "val": %d},`
 	s.ProjectTemporaryData.Nodes += fmt.Sprintf(format, link, link, depth)
 
 	err = s.DataBase.UpdateSlug(slag, true)
 	if err != nil {
 		zap.S().Errorf("failed to update node slug: %s", err)
 	}
+	return true
 }
 
 func (s *Server) AddLink(link string) {
@@ -46,14 +64,17 @@ func (s *Server) AddLink(link string) {
 		zap.S().Errorf("failed to check link status, CheckSlug returned err: %s", err)
 	}
 	if status {
-		format := `{"source": %s, "target": %s},`
+		format := `{"source": "%s", "target": "%s"},`
 		s.ProjectTemporaryData.Links += fmt.Sprintf(format, s.Message.Link, link)
 		return
 	}
 
-	s.AddNode(link, s.Message.Depth+1)
+	nodeStatus := s.AddNode(link, s.Message.Depth+1)
+	if !nodeStatus {
+		return
+	}
 
-	format := `{"source": %s, "target": %s},`
+	format := `{"source": "%s", "target": "%s"},`
 	s.ProjectTemporaryData.Links += fmt.Sprintf(format, s.Message.Link, link)
 
 	if s.Message.Depth < s.MaxDepth {

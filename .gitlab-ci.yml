@@ -3,7 +3,6 @@ stages:
   - unit tests
   - build
   - integration tests
-  - deploy
 
 linting:
   stage: linting
@@ -40,18 +39,3 @@ integration tests:
     - docker compose -f deployments/docker-compose-dev.yml down
     - docker compose -f deployments/docker-compose-dev.yml up -d
     - docker run --network=deployments_service-network --name test-container tests:latest
-
-deploy job:
-  stage: deploy
-  needs: ["linting", "unit tests", "integration tests"]
-  script:
-    - cp configs/Docker.env.template configs/Docker.env
-    - cp configs/Docker.env.template configs/.env
-    - docker compose -f ./deployments/docker-compose.yml down -v
-    - docker volume prune -f
-    - docker compose -f ./deployments/docker-compose.yml up -d
-    # Since we are not in production mode, we must turn off the containers after pipeline
-    - docker rm -f test-container || true
-    - docker compose -f ./deployments/docker-compose-dev.yml down -v
-    - docker compose -f ./deployments/docker-compose.yml down -v
-    - docker volume prune -f
