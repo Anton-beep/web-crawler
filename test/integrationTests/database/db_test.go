@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 	"web-crawler/internal/config"
+	"web-crawler/internal/connection"
 	"web-crawler/internal/models"
 	"web-crawler/internal/repository"
 )
@@ -389,4 +390,26 @@ func TestCheckLink(t *testing.T) {
 	visited, err = db.CheckSlug(link)
 	assert.Equal(t, err, nil, "checking link should not return an error")
 	assert.Equal(t, visited, true, "link should be visited")
+}
+
+func TestWrongConnection(t *testing.T) {
+	cfg := config.Config{
+		Postgres: connection.PostgresConfig{
+			Host:     "non-existing-host",
+			Port:     5432,
+			User:     "",
+			Password: "",
+			DB:       "",
+		},
+		Redis: connection.RedisConfig{
+			Host: "non-existing-host",
+			Port: 6379,
+		},
+		RunIntegrationTests: false,
+		Debug:               false,
+	}
+	_, err := connection.NewPostgresConnect(cfg.Postgres)
+	assert.False(t, err == nil)
+	_, err = connection.NewRedisConnect(cfg.Redis)
+	assert.False(t, err == nil)
 }

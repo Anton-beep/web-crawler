@@ -213,3 +213,44 @@ func TestProceedNonExistingLink(t *testing.T) {
 	assert.Equal(t, result.TotalCollectorCounter, 0)
 	assert.Equal(t, s.DeadListSites, []string{prj.StartUrl})
 }
+
+func TestNegativeCounter(t *testing.T) {
+	if !cfg.RunIntegrationTests {
+		return
+	}
+
+	s := collector.NewServer(cfg)
+	s.Domain = "example.com"
+
+	prj := models.Project{
+		OwnerID:          uuid.New().String(),
+		StartUrl:         "example.com",
+		MaxNumberOfLinks: 1,
+	}
+
+	_, _ = s.DataBase.CreateProject(&prj)
+
+	ptd := models.ProjectTemporaryData{
+		Text:                  "",
+		Titles:                "",
+		Nodes:                 "",
+		Links:                 "",
+		TotalCollectorCounter: 0,
+		CollectorCounterQueue: 1,
+	}
+
+	_ = s.DataBase.SetProjectTemporaryData(prj.ID, &ptd)
+	s.ProjectTemporaryData = &ptd
+
+	msg := broker.Message{
+		Link:      prj.StartUrl,
+		ProjectId: prj.ID,
+		Depth:     0,
+	}
+
+	s.Message = &msg
+
+	assert.False(t, s.WasParsed())
+	err := s.AssignLink()
+	assert.Error(t, models.CollectorCounterIsNegative, err)
+}

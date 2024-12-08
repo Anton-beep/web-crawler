@@ -20,7 +20,7 @@ func NewRedisConnect(cfg RedisConfig) (*redis.Client, error) {
 	})
 	pong := rdb.Ping(context.Background())
 	if pong.Err() != nil {
-		zap.S().Fatal(fmt.Errorf("failed to connect to redis: %w", pong.Err()))
+		return nil, pong.Err()
 	}
 	zap.S().Info("Connected to Redis")
 	return rdb, nil
