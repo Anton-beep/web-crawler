@@ -32,4 +32,4 @@ fi
 
 echo "Все тесты пройдены успешно. Покрытие достаточное ($coverage%)"
 
-go tool cover -func cover.profile
+go tool cover -func coverage.profile
