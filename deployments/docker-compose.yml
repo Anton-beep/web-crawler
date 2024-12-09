@@ -1,0 +1,109 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper
+    container_name: zookeeper
+    env_file:
+      - ../configs/Docker.env
+    networks:
+      - service-network
+
+  kafka:
+    image: confluentinc/cp-kafka
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    env_file:
+      - ../configs/Docker.env
+    healthcheck:
+      test: [ "CMD", "kafka-broker-api-versions", "--bootstrap-server", "kafka:9092" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - service-network
+
+  collector:
+    build:
+      context: ../
+      dockerfile: build/collector/Dockerfile
+    networks:
+      - service-network
+    deploy:
+      replicas: 3
+    depends_on:
+      receiver:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+         condition: service_healthy
+
+  receiver:
+    build:
+      context: ../
+      dockerfile: build/receiver/Dockerfile
+    networks:
+      - service-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+         condition: service_healthy
+
+  frontend:
+    build:
+      context: ../
+      dockerfile: build/frontend/Dockerfile
+    container_name: frontend
+    networks:
+      - service-network
+
+  nginx:
+    image: nginx
+    ports:
+      - "85:80"
+    volumes:
+      - ../configs/nginx/:/etc/nginx/
+    depends_on:
+      - receiver
+      - frontend
+    networks:
+      - service-network
+
+  postgres:
+    image: postgres:15
+    container_name: postgres_container
+    env_file:
+      - ../configs/Docker.env
+    networks:
+      - service-network
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: redis_container
+    volumes:
+      - ./redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 1s
+      timeout: 10s
+      retries: 10
+    env_file:
+      - ../configs/Docker.env
+    networks:
+      - service-network
+
+networks:
+  service-network:
+    driver: bridge

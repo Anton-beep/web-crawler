@@ -1,0 +1,429 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Web Crawler Api",
+    "description": "Description is to be done ",
+    "version": "0.0.1"
+  },
+  "externalDocs": {
+    "description": "NEED TO PUT GITLAB/GITHUB LINK HERE",
+    "url": "http://swagger.io"
+  },
+  "servers": [
+    {
+      "url": "NEED TO PUT SERVER URL HERE"
+    }
+  ],
+  "tags": [
+    {
+      "name": "user",
+      "description": "User logic"
+    },
+    {
+      "name": "project",
+      "description": "Project logic"
+    }
+  ],
+  "paths": {
+    "/user/register": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Register a new user",
+        "requestBody": {
+          "description": "User to create",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas.json#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/components/schemas/AccessToken"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./responses.json#/components/responses/BasicError"
+          }
+        }
+      }
+    },
+    "/user/login": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Logs user into the system",
+        "requestBody": {
+          "description": "Existing user",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas.json#/components/schemas/LoginUser"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/components/schemas/AccessToken"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./responses.json#/components/responses/BasicError"
+          }
+        }
+      }
+    },
+    "/user/logout": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Logs out current logged in user session",
+        "description": "",
+        "operationId": "logoutUser",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/components/schemas/BasicServerAnswer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/getMe": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Gets user info by token",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "your access token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./responses.json#/components/responses/BasicError"
+          },
+          "401": {
+            "$ref": "./responses.json#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/user/edit": {
+      "put": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "your access token"
+            }
+          }
+        ],
+        "tags": [
+          "user"
+        ],
+        "summary": "Edit user",
+        "requestBody": {
+          "description": "User to edit",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas.json#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "./responses.json#/components/responses/BasicSuccess"
+          },
+          "400": {
+            "$ref": "./responses.json#/components/responses/BasicError"
+          },
+          "401": {
+            "$ref": "./responses.json#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/user/delete": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "your access token"
+            }
+          }
+        ],
+        "tags": [
+          "user"
+        ],
+        "summary": "Delete user",
+        "requestBody": {
+          "description": "User to delete",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas.json#/components/schemas/DeleteUser"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "./responses.json#/components/responses/BasicSuccess"
+          },
+          "400": {
+            "$ref": "./responses.json#/components/responses/BasicError"
+          },
+          "401": {
+            "$ref": "./responses.json#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/project/create": {
+      "post": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "your access token"
+            }
+          }
+        ],
+        "tags": [
+          "project"
+        ],
+        "summary": "Create a new project",
+        "requestBody": {
+          "description": "Project to create",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "theProject"
+                  },
+                  "start_url": {
+                    "type": "string",
+                    "example": "http://example.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "example": "abc10"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "ok"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./responses.json#/components/responses/BasicError"
+          },
+          "401": {
+            "$ref": "./responses.json#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/project/get/{id}": {
+      "get": {
+        "tags": [
+          "project"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "your access token"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "abc10"
+            },
+            "description": "ID of the project"
+          }
+        ],
+        "summary": "Get project",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./responses.json#/components/responses/BasicError"
+          },
+          "401": {
+            "$ref": "./responses.json#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/project/getAllShort": {
+      "get": {
+        "tags": [
+          "project"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "your access token"
+            }
+          }
+        ],
+        "summary": "Get names and ids of projects user has access to",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "./schemas.json#/components/schemas/ProjectShort"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./responses.json#/components/responses/BasicError"
+          },
+          "401": {
+            "$ref": "./responses.json#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/project/delete/{id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "your access token"
+            }
+          },
+            {
+                "in": "path",
+                "name": "id",
+                "required": true,
+                "schema": {
+                "type": "string",
+                "example": "abc10"
+                },
+                "description": "ID of the project"
+            }
+        ],
+        "tags": [
+          "project"
+        ],
+        "summary": "Delete project",
+        "responses": {
+          "200": {
+            "$ref": "./responses.json#/components/responses/BasicSuccess"
+          },
+          "400": {
+            "$ref": "./responses.json#/components/responses/BasicError"
+          },
+          "401": {
+            "$ref": "./responses.json#/components/responses/Unauthorized"
+          }
+        }
+      }
+    }
+  }
+}
