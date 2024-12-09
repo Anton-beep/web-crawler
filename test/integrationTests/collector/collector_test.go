@@ -42,8 +42,8 @@ func TestAddLink(t *testing.T) {
 	_, _ = s.DataBase.CreateProject(&prj)
 
 	ptd := models.ProjectTemporaryData{
-		Text:                  "",
-		Titles:                "",
+		Text:                  []string{},
+		Titles:                []string{},
 		Nodes:                 "",
 		Links:                 "",
 		TotalCollectorCounter: prj.MaxNumberOfLinks,
@@ -83,8 +83,8 @@ func TestAddShortLink(t *testing.T) {
 	_, _ = s.DataBase.CreateProject(&prj)
 
 	ptd := models.ProjectTemporaryData{
-		Text:                  "",
-		Titles:                "",
+		Text:                  []string{},
+		Titles:                []string{},
 		Nodes:                 "",
 		Links:                 "",
 		TotalCollectorCounter: prj.MaxNumberOfLinks,
@@ -124,8 +124,8 @@ func TestProceedMessage(t *testing.T) {
 	_, _ = s.DataBase.CreateProject(&prj)
 
 	ptd := models.ProjectTemporaryData{
-		Text:                  "",
-		Titles:                "",
+		Text:                  []string{},
+		Titles:                []string{},
 		Nodes:                 "",
 		Links:                 "",
 		TotalCollectorCounter: prj.MaxNumberOfLinks,
@@ -149,14 +149,14 @@ func TestProceedMessage(t *testing.T) {
 
 	result, _ := s.DataBase.GetProjectTemporaryData(prj.ID)
 
-	assert.Equal(t, result.Text, `Example Domain
+	assert.Equal(t, result.Text[0], `Example Domain
 Example Domain
 This domain is for use in illustrative examples in documents. You may use this
     domain in literature without prior coordination or asking for permission.
 a
 More information...
 `)
-	assert.Equal(t, result.Titles, "Example Domain\n")
+	assert.Equal(t, result.Titles[0], "Example Domain\n")
 	assert.Equal(t, result.Nodes, `{"id": "https://example.com/", "name": "https://example.com/", "val": 0},{"id": "https://www.iana.org/domains/example", "name": "https://www.iana.org/domains/example", "val": 1}`)
 	assert.Equal(t, result.Links, `{"source": "https://example.com/", "target": "https://www.iana.org/domains/example"}`)
 	assert.Equal(t, result.TotalCollectorCounter, 0)
@@ -179,8 +179,8 @@ func TestProceedNonExistingLink(t *testing.T) {
 	_, _ = s.DataBase.CreateProject(&prj)
 
 	ptd := models.ProjectTemporaryData{
-		Text:                  "",
-		Titles:                "",
+		Text:                  []string{},
+		Titles:                []string{},
 		Nodes:                 "",
 		Links:                 "",
 		TotalCollectorCounter: prj.MaxNumberOfLinks,
@@ -206,12 +206,12 @@ func TestProceedNonExistingLink(t *testing.T) {
 
 	result, _ := s.DataBase.GetProjectTemporaryData(prj.ID)
 
-	assert.Equal(t, result.Text, "")
-	assert.Equal(t, result.Titles, "")
+	assert.Equal(t, result.Text, []string{})
+	assert.Equal(t, result.Titles, []string{})
 	assert.Equal(t, result.Nodes, "")
 	assert.Equal(t, result.Links, "")
 	assert.Equal(t, result.TotalCollectorCounter, 0)
-	assert.Equal(t, s.DeadListSites, []string{prj.StartUrl})
+	assert.Equal(t, result.DeadListQueueSites, []string{prj.StartUrl})
 }
 
 func TestNegativeCounter(t *testing.T) {
@@ -231,8 +231,8 @@ func TestNegativeCounter(t *testing.T) {
 	_, _ = s.DataBase.CreateProject(&prj)
 
 	ptd := models.ProjectTemporaryData{
-		Text:                  "",
-		Titles:                "",
+		Text:                  []string{},
+		Titles:                []string{},
 		Nodes:                 "",
 		Links:                 "",
 		TotalCollectorCounter: 0,
