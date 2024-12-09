@@ -70,6 +70,9 @@ func (s *Server) AddNode(link string, depth int) bool {
 
 // AddLink adds link to project temporary data
 func (s *Server) AddLink(link string) {
+	if link[len(link)-1] == '/' {
+		link = link[:len(link)-1]
+	}
 	zap.S().Debug("AddLink ", link)
 	status, err := s.DataBase.CheckSlug(GenerateLinkSlug(s.Message.ProjectId, link))
 	if err != nil {
