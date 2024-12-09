@@ -45,7 +45,7 @@ integration tests:
 
 cleanup:
   stage: cleanup
-  needs: []
+  when: always
   script:
     - echo "Cleaning up all containers and resources..."
     - docker compose -f deployments/docker-compose-dev.yml down || true
