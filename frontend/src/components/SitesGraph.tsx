@@ -50,6 +50,7 @@ export default function SitesGraph({width, height, backgroundCol, data}: {
 
     useEffect(() => {
         if (graphRef.current) {
+            // Docs to graph: https://github.com/vasturiano/3d-force-graph
             const Graph = ForceGraph3D()(graphRef.current)
                 .backgroundColor(backgroundCol)
                 .graphData(data)
@@ -58,9 +59,12 @@ export default function SitesGraph({width, height, backgroundCol, data}: {
                 .nodeAutoColorBy('id')
                 .width(width)
                 .height(height)
-                .linkDirectionalParticles(10)
+                .linkDirectionalParticles(5)
                 .linkDirectionalParticleSpeed(0.003)
                 .nodeRelSize(5);
+
+            // make first node bigger
+            Graph.nodeVal(node => node === data.nodes[0] ? 1000 : 5);
 
             Graph.onNodeClick((node: NodeObject<number>, event: any) => {
                 const borders = getBordersForNodeOn2D(node, Graph);
