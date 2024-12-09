@@ -35,7 +35,7 @@ func TestAddLink(t *testing.T) {
 
 	prj := models.Project{
 		OwnerID:          uuid.New().String(),
-		StartUrl:         "https://example.com/",
+		StartUrl:         "https://example.com",
 		MaxNumberOfLinks: 1,
 	}
 
@@ -62,8 +62,8 @@ func TestAddLink(t *testing.T) {
 
 	s.PrepareLink("https://example.com/")
 
-	assert.Equal(t, s.ProjectTemporaryData.Nodes, `{"id": "https://example.com/", "name": "https://example.com/", "val": 1},`)
-	assert.Equal(t, s.ProjectTemporaryData.Links, `{"source": "https://example.com/", "target": "https://example.com/"},`)
+	assert.Equal(t, s.ProjectTemporaryData.Nodes, `{"id": "https://example.com", "name": "https://example.com", "val": 1},`)
+	assert.Equal(t, s.ProjectTemporaryData.Links, `{"source": "https://example.com", "target": "https://example.com"},`)
 }
 
 func TestAddShortLink(t *testing.T) {
@@ -76,7 +76,7 @@ func TestAddShortLink(t *testing.T) {
 
 	prj := models.Project{
 		OwnerID:          uuid.New().String(),
-		StartUrl:         "https://example.com/",
+		StartUrl:         "https://example.com",
 		MaxNumberOfLinks: 1,
 	}
 
@@ -103,8 +103,8 @@ func TestAddShortLink(t *testing.T) {
 
 	s.PrepareLink("/")
 
-	assert.Equal(t, s.ProjectTemporaryData.Nodes, `{"id": "https://example.com/", "name": "https://example.com/", "val": 1},`)
-	assert.Equal(t, s.ProjectTemporaryData.Links, `{"source": "https://example.com/", "target": "https://example.com/"},`)
+	assert.Equal(t, s.ProjectTemporaryData.Nodes, `{"id": "https://example.com", "name": "https://example.com", "val": 1},`)
+	assert.Equal(t, s.ProjectTemporaryData.Links, `{"source": "https://example.com", "target": "https://example.com"},`)
 }
 
 func TestProceedMessage(t *testing.T) {
