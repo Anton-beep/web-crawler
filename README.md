@@ -6,14 +6,19 @@
 
 <img src="frontend/public/web_crawler_logo.svg" alt="Web Crawler Logo" width="200" height="200">
 
-[![Build Status](https://gitlab.crja72.ru/gospec/go1/web-crawler/badges/main/pipeline.svg)](https://gitlab.crja72.ru/gospec/go1/web-crawler/-/pipelines)
-[![Coverage Status](https://gitlab.crja72.ru/gospec/go1/web-crawler/badges/main/coverage.svg)](https://gitlab.crja72.ru/gospec/go1/web-crawler/-/pipelines)
+### Branch status
 
-</div>
+| Branch  | Pipeline status                                                                                                                                          | Coverage                                                                                                                                                    |
+|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `main`  | [![Build Status](https://gitlab.crja72.ru/gospec/go1/web-crawler/badges/main/pipeline.svg)](https://gitlab.crja72.ru/gospec/go1/web-crawler/-/pipelines) | [![Coverage Status](https://gitlab.crja72.ru/gospec/go1/web-crawler/badges/main/coverage.svg)](https://gitlab.crja72.ru/gospec/go1/web-crawler/-/pipelines) |
+| `dev`   | [![Build Status](https://gitlab.crja72.ru/gospec/go1/web-crawler/badges/dev/pipeline.svg)](https://gitlab.crja72.ru/gospec/go1/web-crawler/-/pipelines)  | [![Coverage Status](https://gitlab.crja72.ru/gospec/go1/web-crawler/badges/dev/coverage.svg)](https://gitlab.crja72.ru/gospec/go1/web-crawler/-/pipelines)  |
+
 
 Web Crawler is a scalable and efficient tool for collecting information from websites. It supports crawling web pages, extracting their content, and following links to other pages. Designed with a microservice architecture for performance and flexibility.
 
-[//]: # (Cool Screenshots here)
+
+<img src="images/dashboard.png" alt="Dashboard screenshot" width="600" height="auto">
+</div>
 
 ---
 
@@ -23,13 +28,14 @@ Web Crawler is a scalable and efficient tool for collecting information from web
 
 To run the project in production mode:
 
-1. Configure environment variables in `configs/Docker.env` (use `configs/Docker.env.template` as a template).
-2. Copy them into `configs/.env`:
+1. Configure backend environment variables in `configs/Docker.env` (use `configs/Docker.env.template` as a template).
+2. Configure frontend environment variables in `frontend/.env` (use `frontend/.env.template` as a template).
+3. Copy them into `configs/.env`:
    ```bash
    cp configs/Docker.env configs/.env
    ```
-2. Install [Docker](https://www.docker.com).
-3. Run the following command:
+4. Install [Docker](https://www.docker.com).
+5. Run the following command:
    ```bash
    docker compose -f deployments/docker-compose.yml up --build
    ```
