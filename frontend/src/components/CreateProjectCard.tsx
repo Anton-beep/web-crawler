@@ -21,6 +21,12 @@ export default function CreateProjectCard() {
             return;
         }
 
+        if (name === "") {
+            setIsError(true);
+            setMessage("Name cannot be empty");
+            return;
+        }
+
         Api.createProject(name, url).then(() => {
             setIsError(false);
             setMessage("Project created successfully");
