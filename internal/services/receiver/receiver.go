@@ -37,6 +37,18 @@ func (r *Service) Start() {
 	e := echo.New()
 
 	e.Use(middleware.CORS())
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogURI:    true,
+		LogStatus: true,
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			zap.L().Info("request",
+				zap.String("URI", v.URI),
+				zap.Int("status", v.Status),
+			)
+
+			return nil
+		},
+	}))
 
 	e.GET("/api/ping", Pong)
 	e.POST("/api/project/create", r.CreateProject)

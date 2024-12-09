@@ -47,6 +47,8 @@ func (r *Service) CreateProject(c echo.Context) error {
 		Processing:       true,
 	}
 
+	zap.S().Debug("Creating project in db: ", prj)
+
 	id, err := r.db.CreateProject(&prj)
 	if err != nil {
 		zap.S().Errorf("error while creating project: %s", err)
@@ -64,6 +66,8 @@ func (r *Service) CreateProject(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
+	zap.S().Debug("Adding site to parse to kafka: ", in.StartUrl)
+
 	err = r.kafka.AddSiteToParse(in.StartUrl, id, 0)
 	if err != nil {
 		zap.S().Errorf("error while adding site to parse: %s", err)
@@ -80,6 +84,8 @@ func (r *Service) GetProject(c echo.Context) error {
 	if id == "" {
 		return c.JSON(http.StatusBadRequest, errMsg{Message: "invalid id"})
 	}
+
+	zap.S().Debug("Getting project from db: ", id)
 
 	prj, err := r.db.GetProject(id)
 
@@ -101,6 +107,7 @@ func (r *Service) GetProject(c echo.Context) error {
 
 // GetAllShort returns list of projects that belong to the user
 func (r *Service) GetAllShort(c echo.Context) error {
+	zap.S().Debug("Getting all projects from db")
 	prjs, err := r.db.GetProjectsByOwnerId(r.tempUUID)
 	if err != nil {
 		zap.S().Errorf("error while getting projects: %s", err)
@@ -121,6 +128,8 @@ func (r *Service) DeleteProject(c echo.Context) error {
 	if id == "" {
 		return c.JSON(http.StatusBadRequest, errMsg{Message: "invalid id"})
 	}
+
+	zap.S().Debug("Deleting project from db: ", id)
 
 	err := r.db.DeleteProject(id)
 
