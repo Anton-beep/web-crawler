@@ -3,6 +3,7 @@ stages:
   - unit tests
   - build
   - integration tests
+  - cleanup
 
 linting:
   stage: linting
@@ -41,3 +42,13 @@ integration tests:
     - docker compose -f deployments/docker-compose-dev.yml up -d
     - docker run --network=deployments_service-network --name test-container tests:latest
   coverage: /total:\s+\(statements\)\s+\d+.\d+%/
+
+cleanup:
+  stage: cleanup
+  needs: []
+  script:
+    - echo "Cleaning up all containers and resources..."
+    - docker compose -f deployments/docker-compose-dev.yml down || true
+    - docker rm -f test-container || true
+    - docker rmi -f tests:latest || true
+    - echo "Cleanup completed."
