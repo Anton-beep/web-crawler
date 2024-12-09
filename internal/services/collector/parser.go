@@ -12,12 +12,18 @@ import (
 
 // AddTitle adds title to project temporary data
 func (s *Server) AddTitle(title string) {
-	s.ProjectTemporaryData.Titles += title + "\n"
+	if len(s.ProjectTemporaryData.Titles) == 0 {
+		s.ProjectTemporaryData.Titles = append(s.ProjectTemporaryData.Titles, "")
+	}
+	s.ProjectTemporaryData.Titles[0] += title + "\n"
 }
 
 // AddText adds text to project temporary data
 func (s *Server) AddText(text string) {
-	s.ProjectTemporaryData.Text += text + "\n"
+	if len(s.ProjectTemporaryData.Text) == 0 {
+		s.ProjectTemporaryData.Text = append(s.ProjectTemporaryData.Text, "")
+	}
+	s.ProjectTemporaryData.Text[0] += text + "\n"
 }
 
 // AddNode adds node to project temporary data
