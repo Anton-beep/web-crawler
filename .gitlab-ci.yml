@@ -48,6 +48,7 @@ cleanup:
   when: always
   script:
     - echo "Cleaning up all containers and resources..."
+    - cp configs/.env.template configs/.env
     - docker compose -f deployments/docker-compose-dev.yml down || true
     - docker rm -f test-container || true
     - echo "Cleanup completed."

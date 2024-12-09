@@ -30,7 +30,7 @@ To run the project in production mode:
 
 1. Configure backend environment variables in `configs/Docker.env` (use `configs/Docker.env.template` as a template).
 2. Configure frontend environment variables in `frontend/.env` (use `frontend/.env.template` as a template).
-3. Copy them into `configs/.env`:
+3. Copy `configs/Docker.env` into `configs/.env`:
    ```bash
    cp configs/Docker.env configs/.env
    ```
@@ -39,6 +39,8 @@ To run the project in production mode:
    ```bash
    docker compose -f deployments/docker-compose.yml up --build
    ```
+6. If you did not change the ports in `configs/.env`, then the web interface will be available at `http://localhost:85`.
+
 
 ### Development
 
@@ -52,7 +54,6 @@ To run the project in development mode:
     docker compose -f deployments/docker-compose-dev.yml up --build
     ```
    In this mode, all third-party containers will be deployed with ports forwarded to `localhost`.
-4. If you did not change the ports in `configs/.env`, then the web interface will be available at `http://localhost:85`.
 
 #### Setup
 
