@@ -113,7 +113,7 @@ Open `cover.html` to view the detailed coverage report.
 
 To lint the backend, install [golangci-lint](https://golangci-lint.run/usage/install/):
 ```bash
-golangci-lint run -c configs/.golangci.yml
+golangci-lint run -c configs/.golangci.yml -v
 ```
 
 #### Frontend

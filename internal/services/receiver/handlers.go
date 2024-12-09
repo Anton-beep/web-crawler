@@ -108,7 +108,13 @@ func (r *Service) GetProject(c echo.Context) error {
 // GetAllShort returns list of projects that belong to the user
 func (r *Service) GetAllShort(c echo.Context) error {
 	zap.S().Debug("Getting all projects from db")
+
 	prjs, err := r.db.GetProjectsByOwnerId(r.tempUUID)
+
+	if errors.Is(err, models.DataBaseNotFound) {
+		return c.JSON(http.StatusOK, []models.ShortProject{})
+	}
+
 	if err != nil {
 		zap.S().Errorf("error while getting projects: %s", err)
 		return echo.ErrInternalServerError
