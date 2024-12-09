@@ -13,8 +13,8 @@ import (
 func TestAddTitle(t *testing.T) {
 	server := collector.Server{
 		ProjectTemporaryData: &models.ProjectTemporaryData{
-			Text:                  "",
-			Titles:                "",
+			Text:                  []string{},
+			Titles:                []string{},
 			Nodes:                 "",
 			Links:                 "",
 			TotalCollectorCounter: 0,
@@ -25,14 +25,14 @@ func TestAddTitle(t *testing.T) {
 
 	server.AddTitle("test title")
 
-	assert.Equal(t, server.ProjectTemporaryData.Titles, "test title\n", "Expected to add title to titles")
+	assert.Equal(t, server.ProjectTemporaryData.Titles, []string{"test title\n"}, "Expected to add title to titles")
 }
 
 func TestAddText(t *testing.T) {
 	server := collector.Server{
 		ProjectTemporaryData: &models.ProjectTemporaryData{
-			Text:                  "",
-			Titles:                "",
+			Text:                  []string{},
+			Titles:                []string{},
 			Nodes:                 "",
 			Links:                 "",
 			TotalCollectorCounter: 0,
@@ -43,5 +43,5 @@ func TestAddText(t *testing.T) {
 
 	server.AddText("test text")
 
-	assert.Equal(t, server.ProjectTemporaryData.Text, "test text\n", "Expected to add title to titles")
+	assert.Equal(t, server.ProjectTemporaryData.Text, []string{"test text\n"}, "Expected to add title to titles")
 }

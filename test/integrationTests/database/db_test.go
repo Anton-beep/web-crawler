@@ -260,8 +260,8 @@ func TestSetProjectTemporaryData(t *testing.T) {
 	}
 
 	ptd := models.ProjectTemporaryData{
-		Text:   "text",
-		Titles: "titles",
+		Text:   []string{"text"},
+		Titles: []string{"titles"},
 		Nodes:  "nodes",
 		Links:  "links",
 	}
@@ -270,7 +270,7 @@ func TestSetProjectTemporaryData(t *testing.T) {
 	err := db.SetProjectTemporaryData(id, &ptd)
 	assert.Equal(t, err, nil, "setting project temporary data should not return an error")
 
-	ptd.Text = "new text"
+	ptd.Text[0] = "new text"
 
 	err = db.SetProjectTemporaryData(id, &ptd)
 	assert.Equal(t, err, nil, "setting project temporary data should not return an error")
@@ -282,8 +282,8 @@ func TestGetProjectTemporaryData(t *testing.T) {
 	}
 
 	ptd := models.ProjectTemporaryData{
-		Text:   "text",
-		Titles: "titles",
+		Text:   []string{"text"},
+		Titles: []string{"titles"},
 		Nodes:  "nodes",
 		Links:  "links",
 	}
@@ -304,13 +304,13 @@ func TestGetProjectTemporaryData(t *testing.T) {
 	assert.Truef(t, ptdCpy2 == nil, "project temporary data should be nil")
 	assert.EqualError(t, err, models.DataBaseNotFound.Error(), "error should be DataBaseNotFound")
 
-	ptd.Text = "new text"
+	ptd.Text = []string{"new text"}
 	err = db.SetProjectTemporaryData(id, &ptd)
 	assert.Equal(t, err, nil, "setting project temporary data should not return an error")
 
 	ptdCpy3, err := db.GetProjectTemporaryData(id)
 	assert.Equal(t, err, nil, "getting project temporary data should not return an error")
-	assert.Equal(t, ptdCpy3.Text, "new text", "text should be equal to new text")
+	assert.Equal(t, ptdCpy3.Text[0], "new text", "text should be equal to new text")
 	assert.Equal(t, ptdCpy3.Titles, ptd.Titles, "titles should be equal to titles")
 	assert.Equal(t, ptdCpy3.Nodes, ptd.Nodes, "nodes should be equal to nodes")
 	assert.Equal(t, ptdCpy3.Links, ptd.Links, "links should be equal to links")
@@ -322,8 +322,8 @@ func TestDeleteProjectTemporaryData(t *testing.T) {
 	}
 
 	ptd := models.ProjectTemporaryData{
-		Text:   "text",
-		Titles: "titles",
+		Text:   []string{"text"},
+		Titles: []string{"titles"},
 		Nodes:  "nodes",
 		Links:  "links",
 	}

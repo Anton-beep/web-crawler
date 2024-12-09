@@ -52,6 +52,9 @@ func (s *Server) Start() {
 		if err != nil {
 			zap.S().Fatalf("failed to check sites to parse, CheckSitesToParse returned err: %s", err)
 		}
+		if message.Link[len(message.Link)-1] == '/' {
+			message.Link = message.Link[:len(message.Link)-1]
+		}
 		s.Message = message
 		if s.WasParsed() {
 			s.WriteData()

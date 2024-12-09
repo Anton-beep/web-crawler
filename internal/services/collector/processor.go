@@ -63,10 +63,8 @@ func (s *Server) WriteData() {
 		zap.S().Errorf("failed to get actual project temporary data: %s", err)
 	}
 
-	zap.S().Info(actualData.TotalCollectorCounter)
-
-	actualData.Titles += s.ProjectTemporaryData.Titles
-	actualData.Text += s.ProjectTemporaryData.Text
+	actualData.Titles = append(actualData.Titles, s.ProjectTemporaryData.Titles...)
+	actualData.Text = append(actualData.Text, s.ProjectTemporaryData.Text...)
 	actualData.Links += s.ProjectTemporaryData.Links
 	actualData.Nodes += s.ProjectTemporaryData.Nodes
 	actualData.CollectorCounterQueue += s.NewCollectors - 1
@@ -100,13 +98,14 @@ func (s *Server) WriteData() {
 // Clear clears server data
 func (s *Server) Clear() {
 	s.ProjectTemporaryData = &models.ProjectTemporaryData{
-		Text:                  "",
-		Titles:                "",
+		Text:                  []string{},
+		Titles:                []string{},
 		Nodes:                 "",
 		Links:                 "",
 		TotalCollectorCounter: 0,
 		CollectorCounterQueue: 0,
 	}
+	s.DeadListSites = []string{}
 	s.Domain = ""
 	s.Message = nil
 	s.NewCollectors = 0
@@ -117,8 +116,21 @@ func (s *Server) Process() {
 	s.AddNode(s.Message.Link, s.Message.Depth)
 	node, err := s.GetNode(s.Message.Link)
 	if err != nil {
-		s.DeadListSites = append(s.DeadListSites, s.Message.Link)
 		zap.S().Debugf("failed to get node. Parsing failed: %s", err)
+		s.DeadListSites = append(s.DeadListSites, s.Message.Link)
+
+		s.ProjectTemporaryData = &models.ProjectTemporaryData{
+			Text:                  []string{},
+			Titles:                []string{},
+			Nodes:                 "",
+			Links:                 "",
+			TotalCollectorCounter: 0,
+			CollectorCounterQueue: 0,
+		}
+		s.NewCollectors = 0
+
+		s.WriteData()
+		s.Clear()
 		return
 	}
 	zap.S().Debug("Got node")

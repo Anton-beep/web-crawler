@@ -46,8 +46,6 @@ services:
       dockerfile: build/receiver/Dockerfile
     networks:
       - service-network
-    deploy:
-      replicas: 3
     depends_on:
       kafka:
         condition: service_healthy
@@ -83,8 +81,8 @@ services:
       - ../configs/Docker.env
     networks:
       - service-network
-#    volumes:
-#      - ./postgres_data:/var/lib/postgresql/data
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD", "pg_isready" ]
       interval: 10s
@@ -94,8 +92,8 @@ services:
   redis:
     image: redis:7
     container_name: redis_container
-#    volumes:
-#      - ./redis_data:/data
+    volumes:
+      - ./redis_data:/data
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 1s

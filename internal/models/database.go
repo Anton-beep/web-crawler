@@ -18,8 +18,8 @@ type ShortProject struct {
 }
 
 type ProjectTemporaryData struct {
-	Text                  string   `json:"text"`
-	Titles                string   `json:"titles"`
+	Text                  []string `json:"text"`
+	Titles                []string `json:"titles"`
 	Nodes                 string   `json:"nodes"`
 	Links                 string   `json:"links"`
 	TotalCollectorCounter int      `json:"collector_counter"`
