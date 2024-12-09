@@ -50,5 +50,4 @@ cleanup:
     - echo "Cleaning up all containers and resources..."
     - docker compose -f deployments/docker-compose-dev.yml down || true
     - docker rm -f test-container || true
-    - docker rmi -f tests:latest || true
     - echo "Cleanup completed."
