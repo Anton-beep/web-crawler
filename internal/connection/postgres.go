@@ -48,7 +48,7 @@ func NewPostgresConnect(config PostgresConfig) (*sqlx.DB, error) {
 
 // CreateProjectTable is a function that creates the table 'projects' in the Postgres database
 func CreateProjectTable(db *sqlx.DB) error {
-	query := `
+	queryProjects := `
 	CREATE TABLE IF NOT EXISTS projects (
 		id UUID PRIMARY KEY,
 		owner_id UUID NOT NULL,
@@ -62,11 +62,28 @@ func CreateProjectTable(db *sqlx.DB) error {
 	);
 	`
 
-	_, err := db.ExecContext(context.Background(), query)
+	zap.S().Info("Table 'projects' created or already exists.")
+
+	_, err := db.ExecContext(context.Background(), queryProjects)
 	if err != nil {
 		return err
 	}
 
-	zap.S().Info("Table 'projects' created or already exists.")
+	queryUsers := `
+	CREATE TABLE IF NOT EXISTS users (
+	    		id UUID PRIMARY KEY,
+	    		username TEXT NOT NULL,
+	    		email TEXT NOT NULL,
+	    		password TEXT NOT NULL
+	);
+	`
+
+	_, err = db.ExecContext(context.Background(), queryUsers)
+	if err != nil {
+		return err
+	}
+
+	zap.S().Info("Table 'users' created or already exists.")
+
 	return nil
 }

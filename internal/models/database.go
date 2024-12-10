@@ -58,6 +58,6 @@ type DataBase interface {
 
 	GetUserByUsername(username string) (*User, error)
 	GetUserByEmail(email string) (*User, error)
-	AddUser(user *User) (int, error)
+	AddUser(user *User) (string, error)
 	UpdateUser(user *User) error
 }

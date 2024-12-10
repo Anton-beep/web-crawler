@@ -52,11 +52,21 @@ func (r *Service) Start() {
 		},
 	}))
 
-	e.GET("/api/ping", Pong)
-	e.POST("/api/project/create", r.CreateProject)
-	e.GET("/api/project/get/:id", r.GetProject)
-	e.GET("/api/project/getAllShort", r.GetAllShort)
-	e.DELETE("/api/project/delete/:id", r.DeleteProject)
+	notAuthorized := e.Group("/api")
+
+	notAuthorized.GET("/ping", Pong)
+
+	notAuthorized.POST("/user/register", r.Register)
+
+	authorized := e.Group("/api")
+	authorized.Use(r.AuthMiddleware)
+
+	authorized.POST("/create", r.CreateProject)
+	authorized.GET("/get/:id", r.GetProject)
+	authorized.GET("/getAllShort", r.GetAllShort)
+	authorized.DELETE("/delete/:id", r.DeleteProject)
+
+	authorized.POST("/user/login/:id", r.Login)
 
 	err := e.Start(":" + strconv.Itoa(r.port))
 	if err != nil {
