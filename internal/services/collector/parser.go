@@ -94,7 +94,7 @@ func (s *Server) AddLink(link string) {
 
 	if s.Message.Depth < s.MaxDepth {
 		s.NewCollectors++
-		err = s.Broker.AddSiteToParse(link, s.Message.ProjectId, s.Message.Depth+1)
+		err = s.Broker.ProduceSite(link, s.Message.ProjectId, s.Message.Depth+1)
 		if err != nil {
 			zap.S().Errorf("failed to add site %s to parse, AddSiteToParse returned %s", link, err)
 		}

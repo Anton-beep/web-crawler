@@ -8,10 +8,12 @@ import (
 )
 
 type KafkaConfig struct {
-	Topic        string `env:"TOPIC_NAME"`
-	SitesGroupID string `env:"SITES_GROUP_ID"`
-	Address      string `env:"ADDRESS_KAFKA"`
-	Partition    int    `env:"KAFKA_PARTITION"`
+	SitesTopic     string `env:"SITES_TOPIC_NAME"`
+	AnalyseTopic   string `env:"ANALYSE_TOPIC_NAME"`
+	SitesGroupID   string `env:"SITES_GROUP_ID"`
+	AnalyseGroupID string `env:"ANALYSE_GROUP_ID"`
+	Address        string `env:"ADDRESS_KAFKA"`
+	Partition      int    `env:"KAFKA_PARTITION"`
 }
 
 type ReceiverConfig struct {
