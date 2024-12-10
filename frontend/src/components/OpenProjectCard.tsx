@@ -20,7 +20,7 @@ export default function OpenProjectCard({projects}: {projects: ShortProject[]}) 
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Button className="col-span-4 bg-blue-600 text-primary" onClick={() => {
                                 navigate(`/project/${project.id}`);
-                            }}>
+                            }} key={project.id}>
                                 {project.name}
                             </Button>
                         </div>

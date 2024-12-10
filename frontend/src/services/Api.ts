@@ -45,7 +45,6 @@ class Api {
     }
 
     public createProject(name: string, startUrl: string) {
-        console.log(import.meta.env.VITE_RECEIVER_HOST);
         return this.axiosInstance.post('/project/create', {"name": name, "start_url": startUrl});
     }
 
