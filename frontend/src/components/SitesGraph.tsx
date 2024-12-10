@@ -1,55 +1,8 @@
 import {useEffect, useRef, useState} from 'react';
-import ForceGraph3D, {ForceGraph3DInstance} from '3d-force-graph';
-//import {NodeObject} from "react-force-graph-3d";
+import ForceGraph3D from '3d-force-graph';
 import {GraphData} from '@/types/GraphData.ts';
 import OpenSiteFromGraphCard from "@/components/OpenSiteFromGraphCard.tsx";
 import {NodeObject} from 'three-forcegraph';
-
-
-function getBordersForNodeOn2D(node: NodeObject, graph: ForceGraph3DInstance): {
-    minX: number,
-    minY: number,
-    maxX: number,
-    maxY: number
-} {
-
-    if (node.x === undefined || node.y === undefined || node.z === undefined) {
-        console.error("Node has no x, y or z", node);
-        return {minX: 0, minY: 0, maxX: 0, maxY: 0};
-    }
-
-    const coords = [
-        graph.graph2ScreenCoords(node.x + 5, node.y, node.z),
-        graph.graph2ScreenCoords(node.x - 5, node.y, node.z),
-        graph.graph2ScreenCoords(node.x, node.y - 5, node.z),
-        graph.graph2ScreenCoords(node.x, node.y + 5, node.z),
-        graph.graph2ScreenCoords(node.x, node.y, node.z + 5),
-        graph.graph2ScreenCoords(node.x, node.y, node.z - 5),
-    ]
-
-    let minX = coords[0].x;
-    let maxX = coords[0].x;
-    let minY = coords[0].y;
-    let maxY = coords[0].y;
-
-    for (let i = 1; i < coords.length; i++) {
-        if (coords[i].x < minX) {
-            minX = coords[i].x;
-        }
-        if (coords[i].x > maxX) {
-            maxX = coords[i].x;
-        }
-        if (coords[i].y < minY) {
-            minY = coords[i].y;
-        }
-        if (coords[i].y > maxY) {
-            maxY = coords[i].y;
-        }
-    }
-
-
-    return {minX, minY, maxX, maxY};
-}
 
 export default function SitesGraph({width, height, backgroundCol, data}: {
     width: number,
@@ -98,19 +51,23 @@ export default function SitesGraph({width, height, backgroundCol, data}: {
             // make first node bigger
             Graph.nodeVal((node: NodeObject) => node === data.nodes[0] ? 1000 : 5);
 
-            Graph.onNodeClick((node: NodeObject, event: any) => {
-                const borders = getBordersForNodeOn2D(node, Graph);
-                if (event.layerX < borders.minX || event.layerX > borders.maxX || event.layerY < borders.minY || event.layerY > borders.maxY) {
+            const handleNodeClick = (node: NodeObject) => {
+                if (typeof node.id !== "string") {
+                    console.error("node.id is not string", node);
                     return;
                 }
 
-                if (node.id === undefined) {
-                    console.error("Node has no id", node);
-                    return;
+                if (hoverNode === node.id) {
+                    setLinkToOpen(node.id);
                 }
 
-                setLinkToOpen(node.id.toString());
-            });
+                hoverNode = null;
+                highlightNodesID.clear();
+                highlightLinks.clear();
+                updateHighlight();
+            }
+
+            Graph.onNodeClick(handleNodeClick);
 
             // highlight nodes and links on hover
 
