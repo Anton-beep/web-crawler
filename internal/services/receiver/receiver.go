@@ -18,6 +18,7 @@ type Service struct {
 	depth            int // depth of how many links to parse
 	maxNumberOfLinks int
 	tempUUID         string // temporary uuid while we don't have auth
+	secretSignature  []byte
 }
 
 func New(port int, cfgPath ...string) *Service {
@@ -29,6 +30,7 @@ func New(port int, cfgPath ...string) *Service {
 		depth:            cfg.Receiver.Depth,
 		maxNumberOfLinks: cfg.Receiver.MaxNumberOfLinks,
 		tempUUID:         cfg.Receiver.TempUUID,
+		secretSignature:  []byte(cfg.Receiver.SecretSignature),
 	}
 }
 

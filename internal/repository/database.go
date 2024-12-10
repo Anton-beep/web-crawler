@@ -445,3 +445,21 @@ func NewDB(cfg *config.Config) models.DataBase {
 		redis:    redisConnect,
 	}
 }
+
+// maybe we should put database work with user in another file?
+
+func (d DataBase) GetUserByUsername(username string) (*models.User, error) {
+	panic("implement me")
+}
+
+func (d DataBase) GetUserByEmail(email string) (*models.User, error) {
+	panic("implement me")
+}
+
+func (d DataBase) AddUser(user *models.User) (int, error) {
+	panic("implement me")
+}
+
+func (d DataBase) UpdateUser(user *models.User) error {
+	panic("implement me")
+}
