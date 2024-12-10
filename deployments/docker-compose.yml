@@ -29,7 +29,7 @@ services:
     networks:
       - service-network
     deploy:
-      replicas: 10
+      replicas: 3
     depends_on:
       receiver:
         condition: service_started
