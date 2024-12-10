@@ -33,7 +33,7 @@ func TestCreateProject(t *testing.T) {
 
 	req := httptest.NewRequest(
 		http.MethodPost,
-		"/project/create",
+		"/api/project/create",
 		utils.GetReaderFromStruct(struct {
 			Name     string `json:"name"`
 			StartUrl string `json:"start_url"`
@@ -51,7 +51,7 @@ func TestCreateProject(t *testing.T) {
 
 	req = httptest.NewRequest(
 		http.MethodPost,
-		"/project/create",
+		"/api/project/create",
 		utils.GetReaderFromStruct(struct {
 			Bib string `json:"bib"`
 		}{"bib"}),

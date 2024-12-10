@@ -19,6 +19,7 @@ type Service struct {
 	maxNumberOfLinks int
 	tempUUID         string // temporary uuid while we don't have auth
 	secretSignature  []byte
+	debug            bool
 }
 
 func New(port int, cfgPath ...string) *Service {
@@ -31,12 +32,15 @@ func New(port int, cfgPath ...string) *Service {
 		maxNumberOfLinks: cfg.Receiver.MaxNumberOfLinks,
 		tempUUID:         cfg.Receiver.TempUUID,
 		secretSignature:  []byte(cfg.Receiver.SecretSignature),
+		debug:            cfg.Debug,
 	}
 }
 
 // Start starts the receiver server
 func (r *Service) Start() {
 	e := echo.New()
+
+	e.Debug = r.debug
 
 	e.Use(middleware.CORS())
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
@@ -57,16 +61,15 @@ func (r *Service) Start() {
 	notAuthorized.GET("/ping", Pong)
 
 	notAuthorized.POST("/user/register", r.Register)
+	notAuthorized.POST("/user/login", r.Login)
 
 	authorized := e.Group("/api")
 	authorized.Use(r.AuthMiddleware)
 
-	authorized.POST("/create", r.CreateProject)
-	authorized.GET("/get/:id", r.GetProject)
-	authorized.GET("/getAllShort", r.GetAllShort)
-	authorized.DELETE("/delete/:id", r.DeleteProject)
-
-	authorized.POST("/user/login/:id", r.Login)
+	authorized.POST("/project/create", r.CreateProject)
+	authorized.GET("/project/get/:id", r.GetProject)
+	authorized.GET("/project/getAllShort", r.GetAllShort)
+	authorized.DELETE("/project/delete/:id", r.DeleteProject)
 
 	err := e.Start(":" + strconv.Itoa(r.port))
 	if err != nil {

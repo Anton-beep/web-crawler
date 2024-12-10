@@ -10,7 +10,7 @@ func isPasswordCorrect(password string) bool {
 		return false
 	}
 
-	var hasUpper, hasLower, hasNumber, hasSpecial bool
+	var hasUpper, hasLower, hasNumber bool
 	for _, char := range password {
 		switch {
 		case unicode.IsUpper(char):
@@ -19,12 +19,10 @@ func isPasswordCorrect(password string) bool {
 			hasLower = true
 		case unicode.IsDigit(char):
 			hasNumber = true
-		case unicode.IsPunct(char) || unicode.IsSymbol(char):
-			hasSpecial = true
 		}
 	}
 
-	return hasUpper && hasLower && hasNumber && hasSpecial
+	return hasUpper && hasLower && hasNumber
 }
 
 func isUsernameCorrect(login string) bool {

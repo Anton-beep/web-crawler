@@ -40,12 +40,13 @@ func comparePasswordWithHash(existing string, incoming string) error {
 
 func (r *Service) AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		zap.S().Info("bib")
 		access := c.Request().Header.Get("Authorization")
 		access = strings.Replace(access, "Bearer ", "", 1)
 
 		tokenFromString, err := jwt.Parse(access, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				panic(fmt.Errorf("unexpected signing method: %v", token.Header["alg"]))
+				zap.S().Error(fmt.Errorf("unexpected signing method: %v", token.Header["alg"]))
 			}
 
 			return r.secretSignature, nil
