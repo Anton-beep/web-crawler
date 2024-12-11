@@ -9,7 +9,7 @@ import (
 	"web-crawler/internal/config"
 )
 
-// SitesKafka is a struct that contains the kafka connection and the kafka config
+// Kafka is a struct that contains the kafka connection and the kafka config
 type Kafka struct {
 	cfg      *config.KafkaConfig
 	producer *kafka.Conn

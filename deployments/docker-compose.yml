@@ -54,23 +54,14 @@ services:
       redis:
          condition: service_healthy
 
-  frontend:
+  nginx:
     build:
       context: ../
-      dockerfile: build/frontend/Dockerfile
-    container_name: frontend
-    networks:
-      - service-network
-
-  nginx:
-    image: nginx
+      dockerfile: build/nginx/Dockerfile
     ports:
       - "85:80"
-    volumes:
-      - ../configs/nginx/:/etc/nginx/
     depends_on:
       - receiver
-      - frontend
     networks:
       - service-network
 
