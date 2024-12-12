@@ -8,8 +8,9 @@ import (
 )
 
 type RedisConfig struct {
-	Host string `env:"REDIS_HOST" env-default:"localhost"`
-	Port int    `env:"REDIS_PORT" env-default:"6379"`
+	Host             string `env:"REDIS_HOST" env-default:"localhost"`
+	Port             int    `env:"REDIS_PORT" env-default:"6379"`
+	AnalyserQueueKey string `env:"ANALYSER_QUEUE_KEY" env-default:"analyser-queue"`
 }
 
 // NewRedisConnect is a function that creates a new connection to a Redis database

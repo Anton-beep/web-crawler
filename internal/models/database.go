@@ -17,6 +17,11 @@ type ShortProject struct {
 	Name string `json:"name"`
 }
 
+type AnalyserTask struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
+}
+
 type ProjectTemporaryData struct {
 	Text                  []string `json:"text"`
 	Titles                []string `json:"titles"`
@@ -48,4 +53,10 @@ type DataBase interface {
 	CheckCollectorCounter(id string) error
 
 	GetProjectMaxDepth(id string) (int, error)
+
+	Push2Queue(key string, value interface{}) error
+	PopFromQueue(key string) (string, error)
+
+	AddAnalyserTask(projectId, typeOfAnalysis string) error
+	GetAnalyserTask() (AnalyserTask, error)
 }

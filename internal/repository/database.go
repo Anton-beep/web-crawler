@@ -20,8 +20,9 @@ import (
 // DataBase is a struct that contains the
 // connection to the Postgres and Redis databases
 type DataBase struct {
-	postgres *sqlx.DB
-	redis    *redis.Client
+	postgres         *sqlx.DB
+	redis            *redis.Client
+	analyserQueueKey string
 }
 
 // GetProjectMaxDepth is a function that returns
@@ -34,7 +35,7 @@ type DataBase struct {
 //   - int: the maximum depth of the project
 //   - error: an error if the project with the
 //     given id doesn't exist
-func (d DataBase) GetProjectMaxDepth(id string) (int, error) {
+func (d *DataBase) GetProjectMaxDepth(id string) (int, error) {
 	err := d.checkIfIdExists(id)
 	if err != nil {
 		return 0, err
@@ -69,7 +70,7 @@ func (d DataBase) GetProjectMaxDepth(id string) (int, error) {
 // returns:
 //   - error: an error if the project with the
 //     given id doesn't exist or the collector counter is negative
-func (d DataBase) CheckCollectorCounter(id string) error {
+func (d *DataBase) CheckCollectorCounter(id string) error {
 	err := d.checkIfIdExists(id)
 	if err != nil {
 		return err
@@ -88,7 +89,7 @@ func (d DataBase) CheckCollectorCounter(id string) error {
 	return nil
 }
 
-func (d DataBase) checkIfIdExists(id string) error {
+func (d *DataBase) checkIfIdExists(id string) error {
 	if uuid.Validate(id) != nil {
 		return models.DataBaseWrongID
 	}
@@ -118,7 +119,7 @@ func (d DataBase) checkIfIdExists(id string) error {
 //
 // returns:
 // - *Project: the project with the given id
-func (d DataBase) GetProject(id string) (*models.Project, error) {
+func (d *DataBase) GetProject(id string) (*models.Project, error) {
 	err := d.checkIfIdExists(id)
 	if err != nil {
 		return nil, err
@@ -177,7 +178,7 @@ func (d DataBase) GetProject(id string) (*models.Project, error) {
 // returns:
 //   - *ProjectTemporaryData: the temporary data of
 //     the project with the given id
-func (d DataBase) GetProjectTemporaryData(id string) (*models.ProjectTemporaryData, error) {
+func (d *DataBase) GetProjectTemporaryData(id string) (*models.ProjectTemporaryData, error) {
 	val, err := d.redis.Get(context.Background(), id).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
@@ -204,7 +205,7 @@ func (d DataBase) GetProjectTemporaryData(id string) (*models.ProjectTemporaryDa
 //
 // returns:
 // - string: the id of the created project
-func (d DataBase) CreateProject(project *models.Project) (string, error) {
+func (d *DataBase) CreateProject(project *models.Project) (string, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	query := psql.Insert("projects").
@@ -241,7 +242,7 @@ func (d DataBase) CreateProject(project *models.Project) (string, error) {
 //
 // returns:
 // - error: an error if the temporary data of the project
-func (d DataBase) SetProjectTemporaryData(id string, data *models.ProjectTemporaryData) error {
+func (d *DataBase) SetProjectTemporaryData(id string, data *models.ProjectTemporaryData) error {
 	val, err := json.Marshal(data)
 	if err != nil {
 		zap.S().Debug("failed to serialize project temporary data", err)
@@ -259,7 +260,7 @@ func (d DataBase) SetProjectTemporaryData(id string, data *models.ProjectTempora
 //
 // returns:
 // - error: an error if the project with the given id doesn't exist
-func (d DataBase) UpdateProject(project *models.Project) error {
+func (d *DataBase) UpdateProject(project *models.Project) error {
 	err := d.checkIfIdExists(project.ID)
 	if err != nil {
 		return err
@@ -303,7 +304,7 @@ func (d DataBase) UpdateProject(project *models.Project) error {
 //
 // returns:
 // - error: an error if the project with the given id doesn't exist
-func (d DataBase) DeleteProject(id string) error {
+func (d *DataBase) DeleteProject(id string) error {
 	err := d.checkIfIdExists(id)
 	if err != nil {
 		return err
@@ -334,7 +335,7 @@ func (d DataBase) DeleteProject(id string) error {
 //
 // returns:
 // - error: an error if the temporary data of the project
-func (d DataBase) DeleteProjectTemporaryData(id string) error {
+func (d *DataBase) DeleteProjectTemporaryData(id string) error {
 	_, err := d.GetProjectTemporaryData(id)
 	if err != nil {
 		return err
@@ -359,7 +360,7 @@ func (d DataBase) DeleteProjectTemporaryData(id string) error {
 //
 // returns:
 // - []*ShortProject: the projects with the given owner id
-func (d DataBase) GetProjectsByOwnerId(ownerId string) ([]*models.ShortProject, error) {
+func (d *DataBase) GetProjectsByOwnerId(ownerId string) ([]*models.ShortProject, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	query := psql.Select("id", "name").From("projects").Where(sq.Eq{"owner_id": ownerId})
@@ -402,7 +403,7 @@ func (d DataBase) GetProjectsByOwnerId(ownerId string) ([]*models.ShortProject, 
 //
 // returns:
 // - bool: true if the slug exists, false otherwise
-func (d DataBase) CheckSlug(slag string) (bool, error) {
+func (d *DataBase) CheckSlug(slag string) (bool, error) {
 	val, err := d.redis.Get(context.Background(), slag).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
@@ -422,9 +423,81 @@ func (d DataBase) CheckSlug(slag string) (bool, error) {
 //
 // returns:
 // - error: an error if the slug wasn't updated
-func (d DataBase) UpdateSlug(slag string, status bool) error {
+func (d *DataBase) UpdateSlug(slag string, status bool) error {
 	err := d.redis.Set(context.Background(), slag, status, 0).Err()
 	return err
+}
+
+// Push2Queue adds an arbitrary structure that supports
+// being converted to json to the queue with key
+//
+// params:
+// - key: key of queue
+// - value: that supports json conversion
+//
+// returns:
+// - error
+func (d *DataBase) Push2Queue(key string, value interface{}) error {
+	res, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	err = d.redis.LPush(context.Background(), key, res).Err()
+	if err != nil {
+		err = fmt.Errorf("failed to add value %v to Redis Queue: %s", value, err)
+		return err
+	}
+	return nil
+}
+
+// PopFromQueue pops first value from queue by key
+//
+// params:
+// - key: key of queue
+//
+// returns:
+//   - string: first value from queue
+//     if queue was empty, equals ""
+//   - error: error received when retrieving value
+func (d *DataBase) PopFromQueue(key string) (string, error) {
+	res := d.redis.RPop(context.Background(), key)
+	return res.Val(), res.Err()
+}
+
+// AddAnalyserTask adds task to analyser queue
+//
+// params:
+// - projectId: uuid of Project
+// - typeOfAnalysis: type of analysis
+//
+// returns:
+// - error if adding fails
+func (d *DataBase) AddAnalyserTask(projectId, typeOfAnalysis string) error {
+	return d.Push2Queue(d.analyserQueueKey, models.AnalyserTask{
+		ID:   projectId,
+		Type: typeOfAnalysis,
+	})
+}
+
+// GetAnalyserTask checks the task queue for analysers
+// If the queue is empty, returns an empty structure and DataBaseQueueIsEmpty
+func (d *DataBase) GetAnalyserTask() (models.AnalyserTask, error) {
+	val, err := d.PopFromQueue(d.analyserQueueKey)
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return models.AnalyserTask{}, models.DataBaseQueueIsEmpty
+		}
+		return models.AnalyserTask{}, err
+	}
+	if val == "" {
+		return models.AnalyserTask{}, models.DataBaseQueueIsEmpty
+	}
+	var analTask models.AnalyserTask
+	err = json.Unmarshal([]byte(val), &analTask)
+	if err != nil {
+		return models.AnalyserTask{}, err
+	}
+	return analTask, err
 }
 
 // NewDB is a function that creates a new DataBase struct
@@ -441,7 +514,8 @@ func NewDB(cfg *config.Config) models.DataBase {
 	}
 	zap.S().Info("Database created")
 	return &DataBase{
-		postgres: postgresConnect,
-		redis:    redisConnect,
+		postgres:         postgresConnect,
+		redis:            redisConnect,
+		analyserQueueKey: cfg.Redis.AnalyserQueueKey,
 	}
 }
