@@ -1,12 +1,12 @@
-import {MacbookScroll} from "@/components/ui/macbook-scroll.tsx";
+// import {MacbookScroll} from "@/components/ui/macbook-scroll.tsx";
 import AnimationOnScroll from "@/components/AnimationOnScroll.tsx";
 
 export default function About() {
     return (
         <div>
-            <MacbookScroll src="about_mackbook_content.png"
-                           title={(<div className="text-primary">We crawl around the web to collect data for
-                               <span className="text-accent font-extrabold"> you </span></div>)}/>
+            {/*<MacbookScroll src="about_mackbook_content.png"*/}
+            {/*               title={(<div className="text-primary">We crawl around the web to collect data for*/}
+            {/*                   <span className="text-accent font-extrabold"> you </span></div>)}/>*/}
 
             <div className="flex flex-col md:flex-row items-center gap-8 mb-52 text-primary">
                 <div className="md:w-1/2">

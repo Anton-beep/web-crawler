@@ -16,7 +16,7 @@ func makeToken(login string, secretSignature []byte) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"name": login,
 		"nbf":  now.Unix(),
-		"exp":  now.Add(5 * time.Minute).Unix(),
+		"exp":  now.Add(24 * time.Hour).Unix(),
 		"iat":  now.Unix(),
 	})
 
@@ -40,7 +40,6 @@ func comparePasswordWithHash(existing string, incoming string) error {
 
 func (r *Service) AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		zap.S().Info("bib")
 		access := c.Request().Header.Get("Authorization")
 		access = strings.Replace(access, "Bearer ", "", 1)
 

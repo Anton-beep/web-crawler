@@ -71,6 +71,9 @@ func (r *Service) Start() {
 	authorized.GET("/project/getAllShort", r.GetAllShort)
 	authorized.DELETE("/project/delete/:id", r.DeleteProject)
 
+	authorized.GET("/user/get", r.GetUser)
+	authorized.PUT("/user/update", r.UpdateUser)
+
 	err := e.Start(":" + strconv.Itoa(r.port))
 	if err != nil {
 		zap.S().Fatalf("error while starting server: %s", err)

@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"testing"
 	"time"
+	"web-crawler/internal/models"
 	"web-crawler/internal/services/receiver"
 	"web-crawler/internal/utils"
 )
@@ -20,13 +21,9 @@ func TestRegisterUser(t *testing.T) {
 	e := echo.New()
 	r := receiver.New(1234, "../../../configs/.env")
 
-	user1 := struct {
-		Username string `json:"username"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}{"newUserRegister" + strconv.Itoa(int(time.Now().Unix())),
-		"userRegister" + strconv.Itoa(int(time.Now().Unix())) + "@bib.com",
-		"Password123Password"}
+	user1 := models.User{Username: "newUserRegister" + strconv.Itoa(int(time.Now().Unix())),
+		Email:    "userRegister" + strconv.Itoa(int(time.Now().Unix())) + "@bib.com",
+		Password: "Password123Password"}
 
 	req1 := httptest.NewRequest(
 		http.MethodPost,
@@ -174,4 +171,62 @@ func TestLoginUser(t *testing.T) {
 
 	assert.NoError(t, r.Login(c))
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
+}
+
+func TestGetUser(t *testing.T) {
+	if !cfg.RunIntegrationTests {
+		return
+	}
+
+	e := echo.New()
+	r := receiver.New(1234, "../../../configs/.env")
+
+	// register
+	user1 := models.User{Username: "newUserGetUser" + strconv.Itoa(int(time.Now().Unix())),
+		Email:    "userGetUser" + strconv.Itoa(int(time.Now().Unix())) + "@bib.com",
+		Password: "Password123Password"}
+
+	req1 := httptest.NewRequest(
+		http.MethodPost,
+		"/api/user/register",
+		utils.GetReaderFromStruct(user1),
+	)
+	req1.Header.Set("Content-Type", "application/json; charset=utf8")
+
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req1, rec)
+
+	assert.NoError(t, r.Register(c))
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	// login using username
+	req2 := httptest.NewRequest(
+		http.MethodPost,
+		"/api/user/login",
+		utils.GetReaderFromStruct(struct {
+			Login    string `json:"login"`
+			Password string `json:"password"`
+		}{user1.Username, user1.Password}),
+	)
+
+	req2.Header.Set("Content-Type", "application/json; charset=utf8")
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req2, rec)
+
+	assert.NoError(t, r.Login(c))
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	// get user
+	req3 := httptest.NewRequest(
+		http.MethodGet,
+		"/api/user",
+		nil,
+	)
+
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req3, rec)
+	c.Set("user", &user1)
+
+	assert.NoError(t, r.GetUser(c))
+	assert.Equal(t, http.StatusOK, rec.Code)
 }

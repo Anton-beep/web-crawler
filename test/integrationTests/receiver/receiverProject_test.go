@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 	"web-crawler/internal/config"
+	"web-crawler/internal/models"
 	"web-crawler/internal/services/receiver"
 	"web-crawler/internal/utils"
 )
@@ -16,6 +17,12 @@ import (
 var (
 	cfg *config.Config
 )
+
+func getTestUserStruct() *models.User {
+	return &models.User{
+		ID: "00000000-0000-0000-0000-000000000000",
+	}
+}
 
 func TestMain(m *testing.M) {
 	cfg = config.NewConfig("../../../configs/.env")
@@ -42,6 +49,7 @@ func TestCreateProject(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json; charset=utf8")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
+	c.Set("user", getTestUserStruct())
 
 	assert.NoError(t, r.CreateProject(c))
 
@@ -59,6 +67,7 @@ func TestCreateProject(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json; charset=utf8")
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
+	c.Set("user", getTestUserStruct())
 
 	assert.NoError(t, r.CreateProject(c))
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
@@ -84,6 +93,7 @@ func TestGetProject(t *testing.T) {
 	createReq.Header.Set("Content-Type", "application/json; charset=utf8")
 	createRec := httptest.NewRecorder()
 	createCtx := e.NewContext(createReq, createRec)
+	createCtx.Set("user", getTestUserStruct())
 
 	assert.NoError(t, r.CreateProject(createCtx))
 	assert.Equal(t, http.StatusOK, createRec.Code)
@@ -104,6 +114,7 @@ func TestGetProject(t *testing.T) {
 	getCtx := e.NewContext(getReq, getRec)
 	getCtx.SetParamNames("id")
 	getCtx.SetParamValues(outCreate.Id)
+	getCtx.Set("user", getTestUserStruct())
 
 	assert.NoError(t, r.GetProject(getCtx))
 	assert.Equal(t, http.StatusOK, getRec.Code)
@@ -120,6 +131,7 @@ func TestGetProject(t *testing.T) {
 	getCtx2 := e.NewContext(getReq2, getRec2)
 	getCtx2.SetParamNames("id")
 	getCtx2.SetParamValues("wrongId")
+	getCtx2.Set("user", getTestUserStruct())
 
 	assert.NoError(t, r.GetProject(getCtx2))
 	assert.Equal(t, http.StatusBadRequest, getRec2.Code)
@@ -145,6 +157,7 @@ func TestDeleteProject(t *testing.T) {
 	createReq.Header.Set("Content-Type", "application/json; charset=utf8")
 	createRec := httptest.NewRecorder()
 	createCtx := e.NewContext(createReq, createRec)
+	createCtx.Set("user", getTestUserStruct())
 
 	assert.NoError(t, r.CreateProject(createCtx))
 	assert.Equal(t, http.StatusOK, createRec.Code)
@@ -164,6 +177,7 @@ func TestDeleteProject(t *testing.T) {
 	deleteCtx := e.NewContext(deleteReq, deleteRec)
 	deleteCtx.SetParamNames("id")
 	deleteCtx.SetParamValues(outCreate.Id)
+	deleteCtx.Set("user", getTestUserStruct())
 
 	assert.NoError(t, r.DeleteProject(deleteCtx))
 	assert.Equal(t, http.StatusOK, deleteRec.Code)
@@ -203,6 +217,7 @@ func TestGetAllShort(t *testing.T) {
 	createReq.Header.Set("Content-Type", "application/json; charset=utf8")
 	createRec := httptest.NewRecorder()
 	createCtx := e.NewContext(createReq, createRec)
+	createCtx.Set("user", getTestUserStruct())
 
 	assert.NoError(t, r.CreateProject(createCtx))
 	assert.Equal(t, http.StatusOK, createRec.Code)
@@ -224,6 +239,7 @@ func TestGetAllShort(t *testing.T) {
 	createReq2.Header.Set("Content-Type", "application/json; charset=utf8")
 	createRec2 := httptest.NewRecorder()
 	createCtx2 := e.NewContext(createReq2, createRec2)
+	createCtx2.Set("user", getTestUserStruct())
 
 	assert.NoError(t, r.CreateProject(createCtx2))
 	assert.Equal(t, http.StatusOK, createRec2.Code)
@@ -241,6 +257,7 @@ func TestGetAllShort(t *testing.T) {
 	)
 	getAllShortRec := httptest.NewRecorder()
 	getAllShortCtx := e.NewContext(getAllShortReq, getAllShortRec)
+	getAllShortCtx.Set("user", getTestUserStruct())
 
 	assert.NoError(t, r.GetAllShort(getAllShortCtx))
 	assert.Equal(t, http.StatusOK, getAllShortRec.Code)

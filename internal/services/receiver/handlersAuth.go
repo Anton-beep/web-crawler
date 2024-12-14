@@ -125,3 +125,79 @@ func (r *Service) Login(c echo.Context) error {
 		Access string `json:"access"`
 	}{Access: tokenString})
 }
+
+func (r *Service) GetUser(c echo.Context) error {
+	user, ok := c.Get("user").(*models.User)
+	if !ok {
+		return c.JSON(http.StatusBadRequest, errMsg{Message: "invalid user"})
+	}
+
+	return c.JSON(http.StatusOK, struct {
+		Username string `json:"username"`
+		Email    string `json:"email"`
+	}{user.Username, user.Email})
+}
+
+type inUpdateUser struct {
+	Username        string `json:"username"`
+	Email           string `json:"email"`
+	NewPassword     string `json:"new_password"`
+	CurrentPassword string `json:"current_password"`
+}
+
+func (r *Service) UpdateUser(c echo.Context) error {
+	var in inUpdateUser
+
+	if err := c.Bind(&in); err != nil {
+		return c.JSON(http.StatusBadRequest, errMsg{Message: err.Error()})
+	}
+
+	user, ok := c.Get("user").(*models.User)
+	if !ok {
+		return c.JSON(http.StatusBadRequest, errMsg{Message: "invalid user"})
+	}
+
+	if err := comparePasswordWithHash(user.Password, in.CurrentPassword); err != nil {
+		return c.JSON(http.StatusBadRequest, errMsg{Message: "invalid password"})
+	}
+
+	if in.Username != "" {
+		if !isUsernameCorrect(in.Username) {
+			return c.JSON(http.StatusBadRequest, errMsg{Message: "login is not valid"})
+		}
+		user.Username = in.Username
+	}
+
+	if in.Email != "" {
+		if !isEmailCorrect(in.Email) {
+			return c.JSON(http.StatusBadRequest, errMsg{Message: "email is not valid"})
+		}
+		user.Email = in.Email
+	}
+
+	if in.NewPassword != "" {
+		if !isPasswordCorrect(in.NewPassword) {
+			return c.JSON(http.StatusBadRequest, errMsg{Message: "password is not valid"})
+		}
+		hash, err := generatePasswordHash(in.NewPassword)
+		if err != nil {
+			zap.S().Error("error while hashing password: ", err)
+			return echo.ErrInternalServerError
+		}
+		user.Password = hash
+	}
+
+	if err := r.db.UpdateUser(user); err != nil {
+		zap.S().Error("error while updating user: ", err)
+		return echo.ErrInternalServerError
+	}
+
+	tokenString, err := makeToken(user.Username, r.secretSignature)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, errMsg{Message: "error while creating token"})
+	}
+
+	return c.JSON(http.StatusOK, struct {
+		Access string `json:"access"`
+	}{Access: tokenString})
+}
