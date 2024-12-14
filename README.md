@@ -28,18 +28,16 @@ Web Crawler is a scalable and efficient tool for collecting information from web
 
 To run the project in production mode:
 
-1. Configure backend environment variables in `configs/Docker.env` (use `configs/Docker.env.template` as a template).
-2. Configure frontend environment variables in `frontend/.env` (use `frontend/.env.template` as a template).
-3. Copy `configs/Docker.env` into `configs/.env`:
-   ```bash
-   cp configs/Docker.env configs/.env
+1. Use start script (choose yes for default .env variables):
+   ```shell
+   bash scripts/start.sh
    ```
-4. Install [Docker](https://www.docker.com).
-5. Run the following command:
+2. Install [Docker](https://www.docker.com).
+3. Run the following command:
    ```bash
    docker compose -f deployments/docker-compose.yml up --build
    ```
-6. If you did not change the ports in `configs/.env`, then the web interface will be available at `http://localhost:85`.
+4. If you did not change the ports in `configs/.env`, then the web interface will be available at `http://localhost:85`.
 
 
 ### Development
@@ -113,7 +111,7 @@ Open `cover.html` to view the detailed coverage report.
 
 To lint the backend, install [golangci-lint](https://golangci-lint.run/usage/install/):
 ```bash
-golangci-lint run -c configs/.golangci.yml -v
+golangci-lint run -c configs/.golangci.yml
 ```
 
 #### Frontend

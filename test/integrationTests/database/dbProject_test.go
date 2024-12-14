@@ -1,6 +1,7 @@
 package database_test
 
 import (
+	"errors"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"os"
@@ -343,6 +344,9 @@ func TestDeleteProjectTemporaryData(t *testing.T) {
 	err = db.DeleteProjectTemporaryData(id)
 	assert.NotEqual(t, err, nil, "deleting project temporary data should return an error")
 	assert.EqualError(t, err, models.DataBaseNotFound.Error(), "error should be DataBaseNotFound")
+
+	_, err = db.GetProjectTemporaryData(id)
+	assert.Error(t, err, models.DataBaseNotFound)
 }
 
 func TestUpdateLink(t *testing.T) {
@@ -412,4 +416,82 @@ func TestWrongConnection(t *testing.T) {
 	assert.False(t, err == nil)
 	_, err = connection.NewRedisConnect(cfg.Redis)
 	assert.False(t, err == nil)
+}
+
+func TestPush2Queue(t *testing.T) {
+	if !cfg.RunIntegrationTests {
+		return
+	}
+
+	// Structure that supports conversion to json
+	err := db.Push2Queue("key1", struct {
+		Field1 string `json:"field_1"`
+		Field2 string `json:"field_2"`
+		Field3 string `json:"field_3"`
+	}{"a", "b", "c"})
+	assert.True(t, err == nil)
+}
+
+func TestPopFromQueue(t *testing.T) {
+	if !cfg.RunIntegrationTests {
+		return
+	}
+
+	err := db.Push2Queue("key2", struct {
+		Field1 string `json:"field_1"`
+		Field2 string `json:"field_2"`
+		Field3 string `json:"field_3"`
+	}{"a", "b", "c"})
+	assert.True(t, err == nil)
+
+	_, err = db.PopFromQueue("key2")
+	assert.True(t, err == nil)
+}
+
+func TestAddAnalyserTask(t *testing.T) {
+	if !cfg.RunIntegrationTests {
+		return
+	}
+
+	err := db.AddAnalyserTask("id", "type")
+	assert.True(t, err == nil)
+	_, _ = db.GetAnalyserTask()
+}
+
+func TestGetAnalyserTask(t *testing.T) {
+	if !cfg.RunIntegrationTests {
+		return
+	}
+
+	_, err := db.GetAnalyserTask()
+	assert.True(t, errors.Is(err, models.DataBaseQueueIsEmpty))
+	err = db.AddAnalyserTask("id", "type")
+	assert.True(t, err == nil)
+	task, err := db.GetAnalyserTask()
+	assert.True(t, err == nil)
+	assert.Equal(t, task, models.AnalyserTask{
+		ID:   "id",
+		Type: "type",
+	})
+}
+
+func TestUseWrongId(t *testing.T) {
+	if !cfg.RunIntegrationTests {
+		return
+	}
+
+	_, err := db.GetProjectMaxDepth("wrong-uuid")
+	assert.Error(t, err, models.DataBaseWrongID)
+	_, err = db.GetProjectMaxDepth(uuid.New().String())
+	assert.Error(t, err, models.DataBaseNotFound)
+
+	err = db.CheckCollectorCounter("wrong-uuid")
+	assert.Error(t, err, models.DataBaseWrongID)
+	err = db.CheckCollectorCounter(uuid.New().String())
+	assert.Error(t, err, models.DataBaseNotFound)
+
+	err = db.UpdateProject(&models.Project{ID: "wrong-uuid"})
+	assert.Error(t, err, models.DataBaseWrongID)
+	err = db.UpdateProject(&models.Project{ID: uuid.New().String()})
+	assert.Error(t, err, models.DataBaseNotFound)
 }

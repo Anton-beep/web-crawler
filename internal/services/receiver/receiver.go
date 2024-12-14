@@ -14,7 +14,7 @@ import (
 type Service struct {
 	port             int
 	db               models.DataBase
-	kafka            *broker.SitesKafka
+	kafka            *broker.Kafka
 	depth            int // depth of how many links to parse
 	maxNumberOfLinks int
 	tempUUID         string // temporary uuid while we don't have auth
@@ -27,7 +27,7 @@ func New(port int, cfgPath ...string) *Service {
 	return &Service{
 		port:             port,
 		db:               repository.NewDB(cfg),
-		kafka:            broker.New(cfg, true, false),
+		kafka:            broker.New(cfg, true, false, "sites"),
 		depth:            cfg.Receiver.Depth,
 		maxNumberOfLinks: cfg.Receiver.MaxNumberOfLinks,
 		tempUUID:         cfg.Receiver.TempUUID,

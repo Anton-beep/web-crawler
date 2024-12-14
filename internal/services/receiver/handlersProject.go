@@ -70,7 +70,7 @@ func (r *Service) CreateProject(c echo.Context) error {
 
 	zap.S().Debug("Adding site to parse to kafka: ", in.StartUrl)
 
-	err = r.kafka.AddSiteToParse(in.StartUrl, id, 0)
+	err = r.kafka.ProduceSite(in.StartUrl, id, 0)
 	if err != nil {
 		zap.S().Errorf("error while adding site to parse: %s", err)
 		return echo.ErrInternalServerError
