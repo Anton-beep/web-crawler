@@ -15,19 +15,40 @@ export default function SitesGraph({width, height, backgroundCol, data}: {
 
     useEffect(() => {
         if (graphRef.current) {
-
             const neighbors = new Map<string, Set<string>>();
 
-            data.links.forEach(link => {
-                if (!neighbors.has(link.source)) {
-                    neighbors.set(link.source, new Set());
-                }
-                if (!neighbors.has(link.target)) {
-                    neighbors.set(link.target, new Set());
+            data.links.forEach((link: any) => {
+                let src;
+                if (typeof link.source === "string") {
+                    src = link.source;
+                } else {
+                    src = link.source?.id;
+                    if (src === undefined) {
+                        console.error("link.source.id is undefined", link);
+                        return;
+                    }
                 }
 
-                neighbors.get(link.source)!.add(link.target);
-                neighbors.get(link.target)!.add(link.source);
+                let target;
+                if (typeof link.target === "string") {
+                    target = link.target;
+                } else {
+                    target = link.target?.id;
+                    if (target === undefined) {
+                        console.error("link.target.id is undefined", link);
+                        return;
+                    }
+                }
+
+                if (!neighbors.has(src)) {
+                    neighbors.set(src, new Set());
+                }
+                if (!neighbors.has(target)) {
+                    neighbors.set(target, new Set());
+                }
+
+                neighbors.get(src)!.add(target);
+                neighbors.get(target)!.add(src);
             });
 
             const highlightNodesID = new Set<string>();
@@ -108,8 +129,10 @@ export default function SitesGraph({width, height, backgroundCol, data}: {
 
                 const nodeNeighbors = neighbors.get(node.id);
                 if (nodeNeighbors === undefined) {
+                    console.error("Node has no neighbors", node);
                     return;
                 }
+
 
                 nodeNeighbors.forEach((neighbor: string) => {
                     highlightNodesID.add(neighbor);
@@ -153,6 +176,8 @@ export default function SitesGraph({width, height, backgroundCol, data}: {
                     console.error("node.id is not string ", node)
                     return "rgba(0,255,255,0.6)";
                 }
+
+                // console.log(highlightNodesID.has(node.id))
 
                 return highlightNodesID.has(node.id) ? node.id === hoverNode ? 'rgb(255,0,0,1)' : 'rgba(255,160,0,0.8)' : 'rgba(0,255,255,0.6)'
             })
