@@ -1,6 +1,6 @@
 import AnimationOnScroll from "@/components/AnimationOnScroll.tsx";
 import { motion } from "framer-motion";
-import { HeroHighlight, Highlight } from "../ui/hero-highlight";
+import { Highlight } from "../ui/hero-highlight";
 
 import dynamic from "next/dynamic";
 
