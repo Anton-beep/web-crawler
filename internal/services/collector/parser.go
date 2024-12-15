@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/html"
 	"net/http"
 	"strings"
+	"time"
 	"web-crawler/internal/utils"
 )
 
@@ -127,7 +128,13 @@ func (s *Server) GetNode(link string) (*html.Node, error) {
 
 	utils.AddRandomHeaders(req, s.RandomGenerator)
 
-	resp, err := client.Do(req)
+	var resp *http.Response
+	err = utils.RetryCount(5, time.Second*3, nil, func() error {
+		r, err := client.Do(req)
+		resp = r
+		return err
+	})
+
 	if err != nil {
 		return nil, err
 	}

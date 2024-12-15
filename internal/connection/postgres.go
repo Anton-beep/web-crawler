@@ -6,33 +6,36 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
+	"time"
+	"web-crawler/internal/config"
+	"web-crawler/internal/utils"
 )
 
-type PostgresConfig struct {
-	Host     string `env:"POSTGRES_HOST" env-default:"localhost"`
-	Port     int    `env:"POSTGRES_PORT" env-default:"5432"`
-	User     string `env:"POSTGRES_USER" env-default:"root"`
-	Password string `env:"POSTGRES_PASSWORD" env-default:"123"`
-	DB       string `env:"POSTGRES_DB" env-default:"root"`
-}
-
 // NewPostgresConnect is a function that creates a new connection to a Postgres database
-func NewPostgresConnect(config PostgresConfig) (*sqlx.DB, error) {
+func NewPostgresConnect(cfg *config.Config) (*sqlx.DB, error) {
 	dsn := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		config.Host,
-		config.Port,
-		config.User,
-		config.Password,
-		config.DB,
+		cfg.Postgres.Host,
+		cfg.Postgres.Port,
+		cfg.Postgres.User,
+		cfg.Postgres.Password,
+		cfg.Postgres.DB,
 	)
 
-	connect, err := sqlx.Connect("postgres", dsn)
+	var connect *sqlx.DB
+	err := utils.RetryCount(cfg.RetryAttempts, time.Millisecond*time.Duration(cfg.RetryPause), nil, func() error {
+		con, err := sqlx.Connect("postgres", dsn)
+		connect = con
+		return err
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to connect to Postgres: %w", err)
 	}
 
-	_, err = connect.Conn(context.Background())
+	err = utils.RetryTimeout(time.Millisecond*time.Duration(cfg.RetryTimeout), time.Millisecond*time.Duration(cfg.RetryPause), nil, func() error {
+		_, err := connect.Conn(context.Background())
+		return err
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to connect to Postgres: %w", err)
 	}

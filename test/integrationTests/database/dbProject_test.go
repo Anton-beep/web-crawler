@@ -20,6 +20,9 @@ var (
 
 func TestMain(m *testing.M) {
 	cfg = config.NewConfig("../../../configs/.env")
+	cfg.RetryAttempts = 1
+	cfg.RetryTimeout = 1
+	cfg.RetryPause = 1
 	config.InitLogger(true)
 	if cfg.RunIntegrationTests {
 		db = repository.NewDB(cfg)
@@ -397,24 +400,24 @@ func TestCheckLink(t *testing.T) {
 }
 
 func TestWrongConnection(t *testing.T) {
-	cfg := config.Config{
-		Postgres: connection.PostgresConfig{
+	cfg := &config.Config{
+		Postgres: config.PostgresConfig{
 			Host:     "non-existing-host",
 			Port:     5432,
 			User:     "",
 			Password: "",
 			DB:       "",
 		},
-		Redis: connection.RedisConfig{
+		Redis: config.RedisConfig{
 			Host: "non-existing-host",
 			Port: 6379,
 		},
 		RunIntegrationTests: false,
 		Debug:               false,
 	}
-	_, err := connection.NewPostgresConnect(cfg.Postgres)
+	_, err := connection.NewPostgresConnect(cfg)
 	assert.False(t, err == nil)
-	_, err = connection.NewRedisConnect(cfg.Redis)
+	_, err = connection.NewRedisConnect(cfg)
 	assert.False(t, err == nil)
 }
 
