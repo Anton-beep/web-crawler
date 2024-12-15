@@ -23,7 +23,7 @@ func TestRetryCount(t *testing.T) {
 func TestRetryTimeout(t *testing.T) {
 	startTime := time.Now()
 	err := utils.RetryTimeout(time.Second*3, time.Second, nil, func() error {
-		if time.Now().Sub(startTime) < time.Second {
+		if time.Since(startTime) < time.Second {
 			return errors.New("error")
 		}
 		return nil
