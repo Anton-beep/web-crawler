@@ -3,6 +3,7 @@ import ForceGraph3D from '3d-force-graph';
 import {GraphData} from '@/types/GraphData.ts';
 import OpenSiteFromGraphCard from "@/components/OpenSiteFromGraphCard.tsx";
 import {NodeObject} from 'three-forcegraph';
+import {getHoveredNodeColor, getSelectedNodeColor, getNumberedColor} from "@/utils/nodeColors.ts";
 
 export default function SitesGraph({width, height, backgroundCol, data}: {
     width: number,
@@ -171,15 +172,19 @@ export default function SitesGraph({width, height, backgroundCol, data}: {
                 updateHighlight();
             }));
 
-            Graph.nodeColor(node => {
+            Graph.nodeColor((node: any) => {
                 if (typeof node.id !== "string") {
                     console.error("node.id is not string ", node)
                     return "rgba(0,255,255,0.6)";
                 }
 
-                // console.log(highlightNodesID.has(node.id))
+                let colorNum = node?.val;
+                if (colorNum === undefined) {
+                    console.error("node.val is undefined", node);
+                    return "rgba(0,255,255,0.6)";
+                }
 
-                return highlightNodesID.has(node.id) ? node.id === hoverNode ? 'rgb(255,0,0,1)' : 'rgba(255,160,0,0.8)' : 'rgba(0,255,255,0.6)'
+                return highlightNodesID.has(node.id) ? node.id === hoverNode ? getHoveredNodeColor() : getSelectedNodeColor() : getNumberedColor(colorNum);
             })
 
             Graph.linkWidth(link => {
