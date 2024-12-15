@@ -21,6 +21,7 @@ type ReceiverConfig struct {
 	Depth            int    `env:"DEFAULT_DEPTH" env-default:"20"`
 	MaxNumberOfLinks int    `env:"DEFAULT_MAX_NUMBER_OF_LINKS" env-default:"1000"`
 	TempUUID         string `env:"TEMP_UUID" env-default:"00000000-0000-0000-0000-000000000000"`
+	SecretSignature  string `env:"SECRET_SIGNATURE" env-default:"thisIsADefaultSignatureIfYouSeeItInYourCodeYouBetterChangeIt"`
 }
 
 type CollectorConfig struct {

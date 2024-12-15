@@ -38,10 +38,12 @@ func (r *Service) CreateProject(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, errMsg{Message: "invalid json"})
 	}
 
+	user := c.Get("user").(*models.User)
+
 	prj := models.Project{
 		Name:             in.Name,
 		StartUrl:         in.StartUrl,
-		OwnerID:          r.tempUUID,
+		OwnerID:          user.ID,
 		MaxNumberOfLinks: r.maxNumberOfLinks,
 		MaxDepth:         r.depth,
 		Processing:       true,
@@ -97,6 +99,12 @@ func (r *Service) GetProject(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, errMsg{Message: err.Error()})
 	}
 
+	user := c.Get("user").(*models.User)
+
+	if prj.OwnerID != user.ID {
+		return c.JSON(http.StatusForbidden, errMsg{Message: "forbidden"})
+	}
+
 	if err != nil {
 		zap.S().Errorf("error while getting project: %s", err)
 		return echo.ErrInternalServerError
@@ -109,7 +117,9 @@ func (r *Service) GetProject(c echo.Context) error {
 func (r *Service) GetAllShort(c echo.Context) error {
 	zap.S().Debug("Getting all projects from db")
 
-	prjs, err := r.db.GetProjectsByOwnerId(r.tempUUID)
+	user := c.Get("user").(*models.User)
+
+	prjs, err := r.db.GetProjectsByOwnerId(user.ID)
 
 	if errors.Is(err, models.DataBaseNotFound) {
 		return c.JSON(http.StatusOK, []models.ShortProject{})
@@ -137,7 +147,23 @@ func (r *Service) DeleteProject(c echo.Context) error {
 
 	zap.S().Debug("Deleting project from db: ", id)
 
-	err := r.db.DeleteProject(id)
+	prj, err := r.db.GetProject(id)
+
+	if errors.Is(err, models.DataBaseNotFound) {
+		return c.JSON(http.StatusNotFound, errMsg{Message: err.Error()})
+	}
+
+	if errors.Is(err, models.DataBaseWrongID) {
+		return c.JSON(http.StatusBadRequest, errMsg{Message: err.Error()})
+	}
+
+	user := c.Get("user").(*models.User)
+
+	if prj.OwnerID != user.ID {
+		return c.JSON(http.StatusForbidden, errMsg{Message: "forbidden"})
+	}
+
+	err = r.db.DeleteProject(id)
 
 	if errors.Is(err, models.DataBaseNotFound) {
 		return c.JSON(http.StatusNotFound, errMsg{Message: err.Error()})

@@ -36,7 +36,7 @@ type DataBase struct {
 //   - error: an error if the project with the
 //     given id doesn't exist
 func (d *DataBase) GetProjectMaxDepth(id string) (int, error) {
-	err := d.checkIfIdExists(id)
+	err := d.checkIfProjectIdExists(id)
 	if err != nil {
 		return 0, err
 	}
@@ -71,7 +71,7 @@ func (d *DataBase) GetProjectMaxDepth(id string) (int, error) {
 //   - error: an error if the project with the
 //     given id doesn't exist or the collector counter is negative
 func (d *DataBase) CheckCollectorCounter(id string) error {
-	err := d.checkIfIdExists(id)
+	err := d.checkIfProjectIdExists(id)
 	if err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (d *DataBase) CheckCollectorCounter(id string) error {
 	return nil
 }
 
-func (d *DataBase) checkIfIdExists(id string) error {
+func (d *DataBase) checkIfProjectIdExists(id string) error {
 	if uuid.Validate(id) != nil {
 		return models.DataBaseWrongID
 	}
@@ -120,7 +120,7 @@ func (d *DataBase) checkIfIdExists(id string) error {
 // returns:
 // - *Project: the project with the given id
 func (d *DataBase) GetProject(id string) (*models.Project, error) {
-	err := d.checkIfIdExists(id)
+	err := d.checkIfProjectIdExists(id)
 	if err != nil {
 		return nil, err
 	}
@@ -261,7 +261,7 @@ func (d *DataBase) SetProjectTemporaryData(id string, data *models.ProjectTempor
 // returns:
 // - error: an error if the project with the given id doesn't exist
 func (d *DataBase) UpdateProject(project *models.Project) error {
-	err := d.checkIfIdExists(project.ID)
+	err := d.checkIfProjectIdExists(project.ID)
 	if err != nil {
 		return err
 	}
@@ -305,7 +305,7 @@ func (d *DataBase) UpdateProject(project *models.Project) error {
 // returns:
 // - error: an error if the project with the given id doesn't exist
 func (d *DataBase) DeleteProject(id string) error {
-	err := d.checkIfIdExists(id)
+	err := d.checkIfProjectIdExists(id)
 	if err != nil {
 		return err
 	}

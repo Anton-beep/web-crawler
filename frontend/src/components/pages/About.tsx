@@ -1,8 +1,6 @@
 import AnimationOnScroll from "@/components/AnimationOnScroll.tsx";
-import { TextGenerateEffect } from "../ui/text-generated-effect";
 import { motion } from "framer-motion";
 import { HeroHighlight, Highlight } from "../ui/hero-highlight";
-import { Cover } from "@/components/ui/cover";
 
 import dynamic from "next/dynamic";
 

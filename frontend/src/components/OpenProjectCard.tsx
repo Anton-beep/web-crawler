@@ -6,6 +6,30 @@ import {ShortProject} from "@/types/ShortProject.ts";
 export default function OpenProjectCard({projects}: {projects: ShortProject[]}) {
     const navigate = useNavigate();
 
+    const getProjectsButtons = () => {
+        if (projects.length === 0) {
+            return (
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Button className="col-span-4 bg-blue-600 text-primary">
+                        No projects
+                    </Button>
+                </div>
+            )
+        }
+
+        return projects.map((project) => {
+            return (
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Button className="col-span-4 bg-blue-600 text-primary" onClick={() => {
+                        navigate(`/project/${project.id}`);
+                    }} key={project.id}>
+                        {project.name}
+                    </Button>
+                </div>
+            )
+        })
+    }
+
     return (
         <DialogContent className="text-primary">
             <DialogHeader>
@@ -15,17 +39,7 @@ export default function OpenProjectCard({projects}: {projects: ShortProject[]}) 
                 </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-                {projects.map((project) => {
-                    return (
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Button className="col-span-4 bg-blue-600 text-primary" onClick={() => {
-                                navigate(`/project/${project.id}`);
-                            }} key={project.id}>
-                                {project.name}
-                            </Button>
-                        </div>
-                    )
-                })}
+                {getProjectsButtons()}
             </div>
         </DialogContent>
     )

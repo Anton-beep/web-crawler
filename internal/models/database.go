@@ -32,6 +32,13 @@ type ProjectTemporaryData struct {
 	DeadListQueueSites    []string `json:"dlq_sites"`
 }
 
+type User struct {
+	ID       string `db:"id" json:"id"`
+	Username string `db:"username" json:"username"`
+	Email    string `db:"email" json:"email"`
+	Password string `db:"password" json:"password"`
+}
+
 // DataBase is an interface that contains methods for working with the database
 type DataBase interface {
 	GetProject(id string) (*Project, error)
@@ -59,4 +66,9 @@ type DataBase interface {
 
 	AddAnalyserTask(projectId, typeOfAnalysis string) error
 	GetAnalyserTask() (AnalyserTask, error)
+
+	GetUserByUsername(username string) (*User, error)
+	GetUserByEmail(email string) (*User, error)
+	AddUser(user *User) (string, error)
+	UpdateUser(user *User) error
 }

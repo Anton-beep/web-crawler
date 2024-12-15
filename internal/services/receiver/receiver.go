@@ -18,6 +18,8 @@ type Service struct {
 	depth            int // depth of how many links to parse
 	maxNumberOfLinks int
 	tempUUID         string // temporary uuid while we don't have auth
+	secretSignature  []byte
+	debug            bool
 }
 
 func New(port int, cfgPath ...string) *Service {
@@ -29,12 +31,16 @@ func New(port int, cfgPath ...string) *Service {
 		depth:            cfg.Receiver.Depth,
 		maxNumberOfLinks: cfg.Receiver.MaxNumberOfLinks,
 		tempUUID:         cfg.Receiver.TempUUID,
+		secretSignature:  []byte(cfg.Receiver.SecretSignature),
+		debug:            cfg.Debug,
 	}
 }
 
 // Start starts the receiver server
 func (r *Service) Start() {
 	e := echo.New()
+
+	e.Debug = r.debug
 
 	e.Use(middleware.CORS())
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
@@ -50,11 +56,23 @@ func (r *Service) Start() {
 		},
 	}))
 
-	e.GET("/api/ping", Pong)
-	e.POST("/api/project/create", r.CreateProject)
-	e.GET("/api/project/get/:id", r.GetProject)
-	e.GET("/api/project/getAllShort", r.GetAllShort)
-	e.DELETE("/api/project/delete/:id", r.DeleteProject)
+	notAuthorized := e.Group("/api")
+
+	notAuthorized.GET("/ping", Pong)
+
+	notAuthorized.POST("/user/register", r.Register)
+	notAuthorized.POST("/user/login", r.Login)
+
+	authorized := e.Group("/api")
+	authorized.Use(r.AuthMiddleware)
+
+	authorized.POST("/project/create", r.CreateProject)
+	authorized.GET("/project/get/:id", r.GetProject)
+	authorized.GET("/project/getAllShort", r.GetAllShort)
+	authorized.DELETE("/project/delete/:id", r.DeleteProject)
+
+	authorized.GET("/user/get", r.GetUser)
+	authorized.PUT("/user/update", r.UpdateUser)
 
 	err := e.Start(":" + strconv.Itoa(r.port))
 	if err != nil {
