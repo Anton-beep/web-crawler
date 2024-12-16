@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"testing"
+	"time"
 	"web-crawler/internal/config"
 	"web-crawler/internal/models"
 	"web-crawler/internal/services/receiver"
@@ -44,7 +46,7 @@ func TestCreateProject(t *testing.T) {
 		utils.GetReaderFromStruct(struct {
 			Name     string `json:"name"`
 			StartUrl string `json:"start_url"`
-		}{"newProject", "https://google.com"}),
+		}{"newCreateProject" + strconv.Itoa(int(time.Now().Unix())), "https://google.com"}),
 	)
 	req.Header.Set("Content-Type", "application/json; charset=utf8")
 	rec := httptest.NewRecorder()
@@ -88,7 +90,7 @@ func TestGetProject(t *testing.T) {
 		utils.GetReaderFromStruct(struct {
 			Name     string `json:"name"`
 			StartUrl string `json:"start_url"`
-		}{"newProject", "https://google.com"}),
+		}{"newGetProject" + strconv.Itoa(int(time.Now().Unix())), "https://google.com"}),
 	)
 	createReq.Header.Set("Content-Type", "application/json; charset=utf8")
 	createRec := httptest.NewRecorder()
@@ -152,7 +154,7 @@ func TestDeleteProject(t *testing.T) {
 		utils.GetReaderFromStruct(struct {
 			Name     string `json:"name"`
 			StartUrl string `json:"start_url"`
-		}{"newProject", "https://google.com"}),
+		}{"newDeleteProject" + strconv.Itoa(int(time.Now().Unix())), "https://google.com"}),
 	)
 	createReq.Header.Set("Content-Type", "application/json; charset=utf8")
 	createRec := httptest.NewRecorder()
@@ -212,7 +214,7 @@ func TestGetAllShort(t *testing.T) {
 		utils.GetReaderFromStruct(struct {
 			Name     string `json:"name"`
 			StartUrl string `json:"start_url"`
-		}{"newProject", "https://google.com"}),
+		}{"newGetAllProject" + strconv.Itoa(int(time.Now().Unix())), "https://google.com"}),
 	)
 	createReq.Header.Set("Content-Type", "application/json; charset=utf8")
 	createRec := httptest.NewRecorder()
@@ -234,7 +236,7 @@ func TestGetAllShort(t *testing.T) {
 		utils.GetReaderFromStruct(struct {
 			Name     string `json:"name"`
 			StartUrl string `json:"start_url"`
-		}{"newProject2", "https://google.com"}),
+		}{"newCreateProject2" + strconv.Itoa(int(time.Now().Unix())), "https://google.com"}),
 	)
 	createReq2.Header.Set("Content-Type", "application/json; charset=utf8")
 	createRec2 := httptest.NewRecorder()
