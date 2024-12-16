@@ -22,7 +22,49 @@ Web Crawler is a scalable and efficient tool for collecting information from web
 
 ---
 
-## Installation
+## How it works
+
+```mermaid
+flowchart TD
+    user(<img src='https://www.svgrepo.com/show/532363/user-alt-1.svg'/> User)
+    nginx(<img src='https://www.svgrepo.com/show/303554/nginx-logo.svg'/>)
+    frontend(<img src='https://www.svgrepo.com/show/355190/reactjs.svg'/> Frontend static)
+    receivers(<img src='https://www.svgrepo.com/show/353795/go.svg'/> Receivers)
+    kafka(<img src='https://www.svgrepo.com/show/353951/kafka-icon.svg'/> Kafka)
+    collectors(<img src='https://www.svgrepo.com/show/353795/go.svg'/> Collectors)
+    analysers(<img src='https://www.svgrepo.com/show/353795/go.svg'/> Analysers)
+    redis(<img src='https://www.svgrepo.com/show/354272/redis.svg'/> Redis)
+    postgres(<img src='https://www.svgrepo.com/show/354200/postgresql.svg'/> PostgreSQL)
+    
+    
+    user -->|request to process a link| nginx
+    nginx -->|results of the processing| user
+    nginx -->|ui| frontend
+    frontend -->|ui| nginx
+    nginx -->|requests to process a link| receivers
+    receivers -->|send order to process a link| kafka
+    receivers -->|get user data| postgres
+    kafka -->|send order to process a link| collectors
+    collectors -->|collect the text| redis
+    collectors -->|collect the text| postgres
+    collectors -->|order to collect new links| kafka
+    kafka -->|order to analyse the collected text| analysers
+    analysers -->|analysis of a text| redis
+    analysers -->|analysis of a text| postgres
+
+```
+
+### Components
+
+**_Nginx_**: Balancing requests between `frontend` and `receivers` (there can be multiple receivers).
+
+**_Frontend_**: Web interface for users to interact with the system. Notice that the `frontend` here is static files which are hosted by `Nginx`. `Frontend` is written in React using Vite.
+
+**_Receivers_** (API-Gateway): Service which interacts with user. Receives requests from the `frontend` (actually it's a http request from the user) and sends them to the `Kafka`. Moreover, handles some user data, i.e. login, registration, profile update. Authentication is done by using [JWT tokens](https://golang-jwt.github.io/jwt/), users' passwords are stored in hash.
+
+
+
+## Run
 
 ### Production
 
@@ -60,13 +102,13 @@ To run the project in development mode:
     ```bash
     go mod download
     ```
-3. To run frontend:
+3. Install [Npm](https://nodejs.org/en/download/package-manager)
+4To run frontend:
     ```bash
     cd frontend
     npm run dev
     ```
-4. Install [Npm](https://nodejs.org/en/download/package-manager)
-5. To run backend service run the following command:
+4. To run backend service run the following command:
     ```bash
     go run cmd/<path_to_service>/<service>.go
     ```
