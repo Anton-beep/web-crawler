@@ -56,14 +56,21 @@ flowchart TD
 
 ### Components
 
-**_Nginx_**: Balancing requests between `frontend` and `receivers` (there can be multiple receivers).
+**_Nginx_**: Balancer of requests between `frontend` and `receivers` (there can be multiple receivers).
 
 **_Frontend_**: Web interface for users to interact with the system. Notice that the `frontend` here is static files which are hosted by `Nginx`. `Frontend` is written in React using Vite.
 
 **_Receivers_** (API-Gateway): Service which interacts with user. Receives requests from the `frontend` (actually it's a http request from the user) and sends them to the `Kafka`. Moreover, handles some user data, i.e. login, registration, profile update. Authentication is done by using [JWT tokens](https://golang-jwt.github.io/jwt/), users' passwords are stored in hash.
 
+**_Kafka_**: Service which organizes the work of `analysers`, `receivers`, and `collectors`.
 
+**_Collectors_**: Programm which does the actual job in our application. `Collector` crawls around the web and collects texts and new links.
 
+**_Analyser_**: Programm which analyses the collected by a `collector` text and gives some results of the analysis. `Analyser` can perform various algorithms.
+
+**_PostgeSQL_**: Database.
+
+**_Redis_**: Redis provides storage for `collectors` when they are crawling around the web, so the write and read operations will be very fast.
 ## Run
 
 ### Production
