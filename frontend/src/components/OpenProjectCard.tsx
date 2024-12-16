@@ -19,10 +19,10 @@ export default function OpenProjectCard({projects}: {projects: ShortProject[]}) 
 
         return projects.map((project) => {
             return (
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Button className="col-span-4 bg-blue-600 text-primary" onClick={() => {
+                <div className="grid grid-cols-4 items-center gap-4" key={project.id}>
+                    <Button variant="default" className="col-span-4 bg-blue-600 overflow-hidden text-ellipsis whitespace-nowrap" onClick={() => {
                         navigate(`/project/${project.id}`);
-                    }} key={project.id}>
+                    }}>
                         {project.name}
                     </Button>
                 </div>
@@ -31,7 +31,7 @@ export default function OpenProjectCard({projects}: {projects: ShortProject[]}) 
     }
 
     return (
-        <DialogContent className="text-primary">
+        <DialogContent className="text-primary overflow-auto h-2/4">
             <DialogHeader>
                 <DialogTitle>Open Project</DialogTitle>
                 <DialogDescription>

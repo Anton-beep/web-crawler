@@ -13,7 +13,7 @@ export default function CreateProjectCard() {
     const [message, setMessage] = useState("");
     const [isError, setIsError] = useState(false);
 
-    const handleSend = () => {
+    const handleSend = async () => {
 
         if (!checkValidUrl(url)) {
             setIsError(true);
@@ -24,6 +24,25 @@ export default function CreateProjectCard() {
         if (name === "") {
             setIsError(true);
             setMessage("Name cannot be empty");
+            return;
+        }
+
+        let err = false;
+
+        await Api.getAllProjectsShort().then((response) => {
+            if (response.data.some((project) => project.name === name)) {
+                setIsError(true);
+                setMessage("Project with this name already exists");
+                err = true;
+                return;
+            }
+        }).catch((e) => {
+            setIsError(true);
+            setMessage("Error checking project name");
+            console.error(e);
+        });
+
+        if (err) {
             return;
         }
 
@@ -58,7 +77,10 @@ export default function CreateProjectCard() {
                         className="col-span-3"
                         placeholder="Name your project"
                         value={name}
-                        onChange={e => setName(e.target.value)}
+                        onChange={e => {
+                            setName(e.target.value)
+                            setMessage("")
+                        }}
                     />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
@@ -71,7 +93,10 @@ export default function CreateProjectCard() {
                         placeholder="start url"
                         className="col-span-3"
                         value={url}
-                        onChange={e => setUrl(e.target.value)}
+                        onChange={e => {
+                            setUrl(e.target.value)
+                            setMessage("")
+                        }}
                     />
                 </div>
             </div>

@@ -12,9 +12,11 @@ import (
 	"github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
+	"time"
 	"web-crawler/internal/config"
 	"web-crawler/internal/connection"
 	"web-crawler/internal/models"
+	"web-crawler/internal/utils"
 )
 
 // DataBase is a struct that contains the
@@ -23,6 +25,13 @@ type DataBase struct {
 	postgres         *sqlx.DB
 	redis            *redis.Client
 	analyserQueueKey string
+	retryAttempts    int
+	retryPause       time.Duration
+	retryTimeout     time.Duration
+}
+
+func (d *DataBase) isUUIDCorrect(id string) bool {
+	return uuid.Validate(id) == nil
 }
 
 // GetProjectMaxDepth is a function that returns
@@ -54,7 +63,7 @@ func (d *DataBase) GetProjectMaxDepth(id string) (int, error) {
 	}
 
 	var depth int
-	err = d.postgres.Get(&depth, ProjectQueryString, args...)
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, nil, func() error { return d.postgres.Get(&depth, ProjectQueryString, args...) })
 	if err != nil {
 		return 0, err
 	}
@@ -101,8 +110,9 @@ func (d *DataBase) checkIfProjectIdExists(id string) error {
 	if err != nil {
 		return fmt.Errorf("failed to build check query: %w", err)
 	}
+
 	var _id string
-	err = d.postgres.Get(&_id, checkQueryString, args...)
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, []error{sql.ErrNoRows}, func() error { return d.postgres.Get(&_id, checkQueryString, args...) })
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return models.DataBaseNotFound
@@ -135,7 +145,7 @@ func (d *DataBase) GetProject(id string) (*models.Project, error) {
 	}
 
 	var dlqSites []string
-	err = d.postgres.QueryRow(DlqSitesQueryString, args...).Scan(pq.Array(&dlqSites))
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, []error{sql.ErrNoRows}, func() error { return d.postgres.QueryRow(DlqSitesQueryString, args...).Scan(pq.Array(&dlqSites)) })
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, models.DataBaseNotFound
@@ -156,7 +166,7 @@ func (d *DataBase) GetProject(id string) (*models.Project, error) {
 	}
 
 	var project models.Project
-	err = d.postgres.Get(&project, ProjectQueryString, args...)
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, nil, func() error { return d.postgres.Get(&project, ProjectQueryString, args...) })
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, models.DataBaseNotFound
@@ -179,7 +189,13 @@ func (d *DataBase) GetProject(id string) (*models.Project, error) {
 //   - *ProjectTemporaryData: the temporary data of
 //     the project with the given id
 func (d *DataBase) GetProjectTemporaryData(id string) (*models.ProjectTemporaryData, error) {
-	val, err := d.redis.Get(context.Background(), id).Result()
+	var val string
+	err := utils.RetryCount(d.retryAttempts, d.retryPause, []error{redis.Nil}, func() error {
+		v, err := d.redis.Get(context.Background(), id).Result()
+		val = v
+		return err
+	})
+
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return nil, models.DataBaseNotFound
@@ -219,7 +235,10 @@ func (d *DataBase) CreateProject(project *models.Project) (string, error) {
 	}
 
 	var generatedID string
-	err = d.postgres.QueryRow(queryString, args...).Scan(&generatedID)
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, nil, func() error {
+		return d.postgres.QueryRow(queryString, args...).Scan(&generatedID)
+	})
+
 	if err != nil {
 		zap.S().Debug("failed to create project", err)
 		return "", fmt.Errorf("failed to create project: %w", err)
@@ -249,8 +268,10 @@ func (d *DataBase) SetProjectTemporaryData(id string, data *models.ProjectTempor
 		return fmt.Errorf("failed to serialize project temporary data: %w", err)
 	}
 
-	d.redis.Set(context.Background(), id, val, 0)
-	return nil
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, nil, func() error {
+		return d.redis.Set(context.Background(), id, val, 0).Err()
+	})
+	return err
 }
 
 // UpdateProject is a function that updates the project
@@ -287,7 +308,11 @@ func (d *DataBase) UpdateProject(project *models.Project) error {
 		return fmt.Errorf("failed to build update query: %w", err)
 	}
 
-	_, err = d.postgres.Exec(queryString, args...)
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, []error{sql.ErrNoRows}, func() error {
+		_, err := d.postgres.Exec(queryString, args...)
+		return err
+	})
+
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return models.DataBaseNotFound
@@ -320,7 +345,11 @@ func (d *DataBase) DeleteProject(id string) error {
 		return fmt.Errorf("failed to build delete query: %w", err)
 	}
 
-	_, err = d.postgres.Exec(DeleteQueryString, args...)
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, nil, func() error {
+		_, err := d.postgres.Exec(DeleteQueryString, args...)
+		return err
+	})
+
 	if err != nil {
 		zap.S().Debug("failed to delete project", err)
 		return fmt.Errorf("failed to delete project: %w", err)
@@ -342,7 +371,10 @@ func (d *DataBase) DeleteProjectTemporaryData(id string) error {
 	if err != nil {
 		return err
 	}
-	err = d.redis.Del(context.Background(), id).Err()
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, []error{redis.Nil}, func() error {
+		return d.redis.Del(context.Background(), id).Err()
+	})
+
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return models.DataBaseNotFound
@@ -372,7 +404,17 @@ func (d *DataBase) GetProjectsByOwnerId(ownerId string) ([]*models.ShortProject,
 		return nil, fmt.Errorf("failed to build query: %w", err)
 	}
 
-	rows, err := d.postgres.Query(queryString, args...)
+	ok := d.isUUIDCorrect(ownerId)
+	if !ok {
+		return nil, models.DataBaseWrongID
+	}
+
+	var rows *sql.Rows
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, []error{sql.ErrNoRows}, func() error {
+		rows, err = d.postgres.Query(queryString, args...)
+		return err
+	})
+
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, models.DataBaseNotFound
@@ -406,7 +448,13 @@ func (d *DataBase) GetProjectsByOwnerId(ownerId string) ([]*models.ShortProject,
 // returns:
 // - bool: true if the slug exists, false otherwise
 func (d *DataBase) CheckSlug(slag string) (bool, error) {
-	val, err := d.redis.Get(context.Background(), slag).Result()
+	var val string
+	err := utils.RetryCount(d.retryAttempts, d.retryPause, []error{redis.Nil}, func() error {
+		v, err := d.redis.Get(context.Background(), slag).Result()
+		val = v
+		return err
+	})
+
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return false, nil
@@ -426,7 +474,9 @@ func (d *DataBase) CheckSlug(slag string) (bool, error) {
 // returns:
 // - error: an error if the slug wasn't updated
 func (d *DataBase) UpdateSlug(slag string, status bool) error {
-	err := d.redis.Set(context.Background(), slag, status, 0).Err()
+	err := utils.RetryCount(d.retryAttempts, d.retryPause, nil, func() error {
+		return d.redis.Set(context.Background(), slag, status, 0).Err()
+	})
 	return err
 }
 
@@ -444,7 +494,9 @@ func (d *DataBase) Push2Queue(key string, value interface{}) error {
 	if err != nil {
 		return err
 	}
-	err = d.redis.LPush(context.Background(), key, res).Err()
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, nil, func() error {
+		return d.redis.LPush(context.Background(), key, res).Err()
+	})
 	if err != nil {
 		err = fmt.Errorf("failed to add value %v to Redis Queue: %s", value, err)
 		return err
@@ -462,8 +514,15 @@ func (d *DataBase) Push2Queue(key string, value interface{}) error {
 //     if queue was empty, equals ""
 //   - error: error received when retrieving value
 func (d *DataBase) PopFromQueue(key string) (string, error) {
-	res := d.redis.RPop(context.Background(), key)
-	return res.Val(), res.Err()
+	var res string
+
+	err := utils.RetryCount(d.retryAttempts, d.retryPause, []error{redis.Nil}, func() error {
+		temp := d.redis.RPop(context.Background(), key)
+		res = temp.Val()
+		return temp.Err()
+	})
+
+	return res, err
 }
 
 // AddAnalyserTask adds task to analyser queue
@@ -506,11 +565,11 @@ func (d *DataBase) GetAnalyserTask() (models.AnalyserTask, error) {
 // DataBase implements the models.DataBase interface
 func NewDB(cfg *config.Config) models.DataBase {
 	// 🤓🤓🤓
-	postgresConnect, err := connection.NewPostgresConnect(cfg.Postgres)
+	postgresConnect, err := connection.NewPostgresConnect(cfg)
 	if err != nil {
 		zap.S().Fatal(fmt.Errorf("database wan't created due to error in postgres connect: %w", err))
 	}
-	redisConnect, err := connection.NewRedisConnect(cfg.Redis)
+	redisConnect, err := connection.NewRedisConnect(cfg)
 	if err != nil {
 		zap.S().Fatal(fmt.Errorf("database wan't created due to error in redis connect: %w", err))
 	}
@@ -519,5 +578,8 @@ func NewDB(cfg *config.Config) models.DataBase {
 		postgres:         postgresConnect,
 		redis:            redisConnect,
 		analyserQueueKey: cfg.Redis.AnalyserQueueKey,
+		retryAttempts:    cfg.RetryAttempts,
+		retryPause:       time.Millisecond * time.Duration(cfg.RetryPause),
+		retryTimeout:     time.Millisecond * time.Duration(cfg.RetryTimeout),
 	}
 }
