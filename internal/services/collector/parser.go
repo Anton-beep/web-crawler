@@ -129,7 +129,7 @@ func (s *Server) GetNode(link string) (*html.Node, error) {
 	utils.AddRandomHeaders(req, s.RandomGenerator)
 
 	var resp *http.Response
-	err = utils.RetryCount(5, time.Second*3, nil, func() error {
+	err = utils.RetryCount(2, time.Second*3, nil, func() error {
 		r, err := client.Do(req)
 		resp = r
 		return err
