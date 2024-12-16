@@ -35,22 +35,31 @@ flowchart TD
     analysers(<img src='https://www.svgrepo.com/show/353795/go.svg'/> Analysers)
     redis(<img src='https://www.svgrepo.com/show/354272/redis.svg'/> Redis)
     postgres(<img src='https://www.svgrepo.com/show/354200/postgresql.svg'/> PostgreSQL)
-    
-    
+
     user -->|request to process a link| nginx
+
     nginx -->|results of the processing| user
+    nginx -->|request to process a link| receivers
+    
+    receivers -->|write user data| postgres
+    receivers -->|send order to process a link| kafka
+    receivers -->|send user data and results of the processing| nginx
+
+    kafka -->|send order to process a link| collectors
+    kafka -->|order to analyse the collected text| analysers
+    
+    redis --> |collected texts and links| collectors
+
+    postgres -->|texts| analysers
+    postgres -->|get user data and graph and analysis data| receivers
+    
     nginx -->|ui| frontend
     frontend -->|ui| nginx
-    nginx -->|requests to process a link| receivers
-    receivers -->|send order to process a link| kafka
-    receivers -->|get user data| postgres
-    kafka -->|send order to process a link| collectors
-    collectors -->|collect the text| redis
-    collectors -->|collect the text| postgres
-    collectors -->|order to collect new links| kafka
-    kafka -->|order to analyse the collected text| analysers
-    analysers -->|analysis of a text| redis
+    
     analysers -->|analysis of a text| postgres
+    collectors -->|collected data, links and texts| redis
+    collectors -->|formed data, ready for user to read| postgres
+    collectors -->|order to collect new links| kafka
 
 ```
 
@@ -64,30 +73,35 @@ flowchart TD
 
 **_Kafka_**: Service which organizes the work of `analysers`, `receivers`, and `collectors`.
 
-**_Collectors_**: Programm which does the actual job in our application. `Collector` crawls around the web and collects texts and new links.
+**_Collectors_**: Program which does the actual job in our application. `Collector` crawls around the web and collects texts and new links.
 
-**_Analyser_**: Programm which analyses the collected by a `collector` text and gives some results of the analysis. `Analyser` can perform various algorithms.
+**_Analyser_**: Program which analyses the collected by a `collector` text and gives some results of the analysis. `Analyser` can perform various algorithms.
 
 **_PostgeSQL_**: Database.
 
 **_Redis_**: Redis provides storage for `collectors` when they are crawling around the web, so the write and read operations will be very fast.
+
 ## Run
 
 ### Production
 
-To run the project in production mode:
+Install [Docker](https://www.docker.com)
 
-1. Use start script (choose yes for default .env variables):
+#### Using Default Configuration
+
+Use start script (choose yes for default .env variables):
    ```shell
    bash scripts/start.sh
    ```
-2. Install [Docker](https://www.docker.com).
-3. Run the following command:
+The web interface will be available at `http://localhost:85`.
+
+#### Using custom .env files
+
+1. Create your .env files in `configs/Docker.env` and `frontend/.env`, you can use `configs/Docker.env.template` and `frontend/.env.template` as templates. After that, copy `configs/Docker.env` to `configs/.env`.
+2. Run the following command:
    ```bash
    docker compose -f deployments/docker-compose.yml up --build
    ```
-4. If you did not change the ports in `configs/.env`, then the web interface will be available at `http://localhost:85`.
-
 
 ### Development
 
