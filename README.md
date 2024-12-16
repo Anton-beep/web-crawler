@@ -25,36 +25,9 @@ and flexibility.
 
 ## How it works
 
-```mermaid
-flowchart TD
-    user(<img src='https://www.svgrepo.com/show/532363/user-alt-1.svg'/> User)
-    nginx(<img src='https://www.svgrepo.com/show/303554/nginx-logo.svg'/>)
-    frontend(<img src='https://www.svgrepo.com/show/355190/reactjs.svg'/> Frontend static)
-    receivers(<img src='https://www.svgrepo.com/show/353795/go.svg'/> Receivers)
-    kafka(<img src='https://www.svgrepo.com/show/353951/kafka-icon.svg'/> Kafka)
-    collectors(<img src='https://www.svgrepo.com/show/353795/go.svg'/> Collectors)
-    analysers(<img src='https://www.svgrepo.com/show/353795/go.svg'/> Analysers)
-    redis(<img src='https://www.svgrepo.com/show/354272/redis.svg'/> Redis)
-    postgres(<img src='https://www.svgrepo.com/show/354200/postgresql.svg'/> PostgreSQL)
-    user -->|request to process a link| nginx
-    nginx -->|results of the processing| user
-    nginx -->|request to process a link| receivers
-    receivers -->|write user data| postgres
-    receivers -->|send order to process a link| kafka
-    receivers -->|send user data and results of the processing| nginx
-    kafka -->|send order to process a link| collectors
-    kafka -->|order to analyse the collected text| analysers
-    redis -->|collected texts and links| collectors
-    postgres -->|texts| analysers
-    postgres -->|get user data and graph and analysis data| receivers
-    nginx -->|ui| frontend
-    frontend -->|ui| nginx
-    analysers -->|analysis of a text| postgres
-    collectors -->|collected data, links and texts| redis
-    collectors -->|formed data, ready for user to read| postgres
-    collectors -->|order to collect new links| kafka
-
-```
+<div align="center">
+<img src="images/diagram.svg">
+</div>
 
 ### Components
 
