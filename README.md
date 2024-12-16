@@ -227,7 +227,7 @@ To build the API documentation, run the following command:
 npx @redocly/cli build-docs api/openapi.json -o docs/api/apiDocumentation.html
 ```
 
-Documentation is now available at `docs/api/apiDocumentation.html`
+API documentation is now available at `docs/api/apiDocumentation.html`
 
 ---
 
