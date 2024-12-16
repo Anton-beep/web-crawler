@@ -33,7 +33,7 @@ export default function RegistrationCard({setIsOpen}: { setIsOpen: (isOpen: bool
 
         if (!isUsernameValid(username)) {
             setIsError(true);
-            setMessage("Username must be at least 3 characters long.");
+            setMessage("Username must be more than 3 characters long.");
             return;
         }
 

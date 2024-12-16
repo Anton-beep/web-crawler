@@ -81,6 +81,15 @@ flowchart TD
 
 **_Redis_**: Redis provides storage for `collectors` when they are crawling around the web, so the write and read operations will be very fast.
 
+### API Documentation
+
+Documentation is now available at `docs/api/apiDocumentation.html` (just open it in your browser).
+
+To rebuild the API documentation, run the following command:
+```bash
+npx @redocly/cli build-docs api/openapi.json -o docs/api/apiDocumentation.html
+```
+
 ## Run
 
 ### Production
@@ -90,9 +99,17 @@ Install [Docker](https://www.docker.com)
 #### Using Default Configuration
 
 Use start script (choose yes for default .env variables):
+
+- If you are using Linux:
    ```shell
    bash scripts/start.sh
    ```
+  
+- If you are using Windows:
+   ```shell
+   .\scripts\start.bat
+   ```
+
 The web interface will be available at `http://localhost:85`.
 
 #### Using custom .env files
