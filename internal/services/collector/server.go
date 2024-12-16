@@ -24,6 +24,7 @@ type Server struct {
 	Message              *broker.Message
 	MaxDepth             int
 	NewCollectors        int
+	stopChan             chan struct{}
 }
 
 func NewServer(cfg *config.Config) *Server {

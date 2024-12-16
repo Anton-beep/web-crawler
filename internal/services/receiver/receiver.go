@@ -1,6 +1,7 @@
 package receiver
 
 import (
+	"context"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
@@ -20,6 +21,7 @@ type Service struct {
 	tempUUID         string // temporary uuid while we don't have auth
 	secretSignature  []byte
 	debug            bool
+	echo             *echo.Echo
 }
 
 func New(port int, cfgPath ...string) *Service {
@@ -38,12 +40,12 @@ func New(port int, cfgPath ...string) *Service {
 
 // Start starts the receiver server
 func (r *Service) Start() {
-	e := echo.New()
+	r.echo = echo.New()
 
-	e.Debug = r.debug
+	r.echo.Debug = r.debug
 
-	e.Use(middleware.CORS())
-	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+	r.echo.Use(middleware.CORS())
+	r.echo.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:    true,
 		LogStatus: true,
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
@@ -56,14 +58,14 @@ func (r *Service) Start() {
 		},
 	}))
 
-	notAuthorized := e.Group("/api")
+	notAuthorized := r.echo.Group("/api")
 
 	notAuthorized.GET("/ping", Pong)
 
 	notAuthorized.POST("/user/register", r.Register)
 	notAuthorized.POST("/user/login", r.Login)
 
-	authorized := e.Group("/api")
+	authorized := r.echo.Group("/api")
 	authorized.Use(r.AuthMiddleware)
 
 	authorized.POST("/project/create", r.CreateProject)
@@ -74,8 +76,17 @@ func (r *Service) Start() {
 	authorized.GET("/user/get", r.GetUser)
 	authorized.PUT("/user/update", r.UpdateUser)
 
-	err := e.Start(":" + strconv.Itoa(r.port))
-	if err != nil {
-		zap.S().Fatalf("error while starting server: %s", err)
+	go func() {
+		err := r.echo.Start(":" + strconv.Itoa(r.port))
+		if err != nil {
+			zap.S().Fatalf("error while starting server: %s", err)
+		}
+	}()
+}
+
+func (r *Service) Stop() {
+	zap.S().Info("gracefully stopping server")
+	if err := r.echo.Shutdown(context.Background()); err != nil {
+		zap.S().Errorf("error while stopping server: %s", err)
 	}
 }
