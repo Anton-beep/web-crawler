@@ -28,6 +28,10 @@ type CollectorConfig struct {
 	Tags string `env:"TEXT_TAGS" env-default:""`
 }
 
+type AnalyserConfig struct {
+	Link string `env:"ANALYSER_LINK" env-default:""`
+}
+
 // Config is a struct that contains the configuration for the application
 type Config struct {
 	Postgres            connection.PostgresConfig
@@ -35,6 +39,7 @@ type Config struct {
 	Kafka               KafkaConfig
 	Receiver            ReceiverConfig
 	Collector           CollectorConfig
+	Analyser            AnalyserConfig
 	RunIntegrationTests bool `env:"RUN_INTEGRATION_TESTS" env-default:"false"`
 	Debug               bool `env:"DEBUG" env-default:"true"`
 }

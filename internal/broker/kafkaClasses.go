@@ -76,11 +76,11 @@ func (s Kafka) produce(message Message) error {
 	return nil
 }
 
-func (s Kafka) ProduceAnalyse(link string, projectId string, depth int, analyseType string) error {
+func (s Kafka) ProduceAnalyse(projectId string, analyseType string) error {
 	message := Message{
-		Link:        link,
+		Link:        "",
 		ProjectId:   projectId,
-		Depth:       depth,
+		Depth:       0,
 		AnalyseType: analyseType,
 	}
 	return s.produce(message)

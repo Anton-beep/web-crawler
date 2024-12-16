@@ -84,16 +84,13 @@ func TestKafkaAnalyseSingle(t *testing.T) {
 	}
 	siteConf := *broker.New(cfg, true, true, "analyse")
 	defer siteConf.Close()
-	err := siteConf.ProduceAnalyse("link", "1", 0, "type")
+	err := siteConf.ProduceAnalyse("1", "type")
 	if err != nil {
 		t.Errorf("Error: %v", err)
 	}
-	msg, err := siteConf.Consume()
+	_, err = siteConf.Consume()
 	if err != nil {
 		t.Errorf("Error: %v", err)
-	}
-	if msg.Link != "link" || msg.ProjectId != "1" {
-		t.Errorf("Error: %v", msg)
 	}
 }
 
