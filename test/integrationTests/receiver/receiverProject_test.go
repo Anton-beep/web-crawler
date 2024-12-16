@@ -40,13 +40,15 @@ func TestCreateProject(t *testing.T) {
 	e := echo.New()
 	r := receiver.New(1234, "../../../configs/.env")
 
+	prj1 := struct {
+		Name     string `json:"name"`
+		StartUrl string `json:"start_url"`
+	}{"newCreateProject" + strconv.Itoa(int(time.Now().Unix())), "https://google.com"}
+
 	req := httptest.NewRequest(
 		http.MethodPost,
 		"/api/project/create",
-		utils.GetReaderFromStruct(struct {
-			Name     string `json:"name"`
-			StartUrl string `json:"start_url"`
-		}{"newCreateProject" + strconv.Itoa(int(time.Now().Unix())), "https://google.com"}),
+		utils.GetReaderFromStruct(prj1),
 	)
 	req.Header.Set("Content-Type", "application/json; charset=utf8")
 	rec := httptest.NewRecorder()
@@ -208,13 +210,15 @@ func TestGetAllShort(t *testing.T) {
 	r := receiver.New(1234, "../../../configs/.env")
 
 	// Create
+	prj1 := struct {
+		Name     string `json:"name"`
+		StartUrl string `json:"start_url"`
+	}{"newGetAllProject" + strconv.Itoa(int(time.Now().Unix())), "https://google.com"}
+
 	createReq := httptest.NewRequest(
 		http.MethodPost,
 		"/project/create",
-		utils.GetReaderFromStruct(struct {
-			Name     string `json:"name"`
-			StartUrl string `json:"start_url"`
-		}{"newGetAllProject" + strconv.Itoa(int(time.Now().Unix())), "https://google.com"}),
+		utils.GetReaderFromStruct(prj1),
 	)
 	createReq.Header.Set("Content-Type", "application/json; charset=utf8")
 	createRec := httptest.NewRecorder()
@@ -230,13 +234,15 @@ func TestGetAllShort(t *testing.T) {
 	assert.NoError(t, json.Unmarshal(createRec.Body.Bytes(), &outCreate))
 
 	// Create 2
+	prj2 := struct {
+		Name     string `json:"name"`
+		StartUrl string `json:"start_url"`
+	}{"newCreateProject2" + strconv.Itoa(int(time.Now().Unix())), "https://google.com"}
+
 	createReq2 := httptest.NewRequest(
 		http.MethodPost,
 		"/project/create",
-		utils.GetReaderFromStruct(struct {
-			Name     string `json:"name"`
-			StartUrl string `json:"start_url"`
-		}{"newCreateProject2" + strconv.Itoa(int(time.Now().Unix())), "https://google.com"}),
+		utils.GetReaderFromStruct(prj2),
 	)
 	createReq2.Header.Set("Content-Type", "application/json; charset=utf8")
 	createRec2 := httptest.NewRecorder()
@@ -264,8 +270,8 @@ func TestGetAllShort(t *testing.T) {
 	assert.NoError(t, r.GetAllShort(getAllShortCtx))
 	assert.Equal(t, http.StatusOK, getAllShortRec.Code)
 
-	assert.Contains(t, getAllShortRec.Body.String(), "newProject")
-	assert.Contains(t, getAllShortRec.Body.String(), "newProject2")
+	assert.Contains(t, getAllShortRec.Body.String(), prj1.Name)
+	assert.Contains(t, getAllShortRec.Body.String(), prj2.Name)
 	assert.Contains(t, getAllShortRec.Body.String(), outCreate.Id)
 	assert.Contains(t, getAllShortRec.Body.String(), outCreate2.Id)
 }
