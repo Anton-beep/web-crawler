@@ -58,7 +58,9 @@ func CreateProjectTable(db *sqlx.DB) error {
 		web_graph TEXT,
 		dlq_sites TEXT[],
 		max_depth INT,
-		max_number_of_links INT
+		max_number_of_links INT,
+		key_words TEXT,
+		main_ideas TEXT
 	);
 	`
 

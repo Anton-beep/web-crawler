@@ -15,6 +15,7 @@ import (
 type Server struct {
 	DataBase             models.DataBase
 	Broker               *broker.Kafka
+	AnalyseBroker        *broker.Kafka
 	ProjectTemporaryData *models.ProjectTemporaryData
 	DeadListSites        []string
 	TextTags             map[string]bool
@@ -33,6 +34,7 @@ func NewServer(cfg *config.Config) *Server {
 	return &Server{
 		DataBase:             repository.NewDB(cfg),
 		Broker:               broker.New(cfg, true, true, "sites"),
+		AnalyseBroker:        broker.New(cfg, true, false, "analyser"),
 		ProjectTemporaryData: &models.ProjectTemporaryData{},
 		TextTags:             tagMap,
 		Domain:               "",

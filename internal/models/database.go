@@ -10,6 +10,8 @@ type Project struct {
 	DlqSites         []string `db:"dlq_sites" json:"dlq_sites"`
 	MaxDepth         int      `db:"max_depth" json:"max_depth"`
 	MaxNumberOfLinks int      `db:"max_number_of_links" json:"max_number_of_links"`
+	KeyWords         string   `db:"key_words" json:"key_words"`
+	MainIdeas        string   `db:"main_ideas" json:"main_ideas"`
 }
 
 type ShortProject struct {

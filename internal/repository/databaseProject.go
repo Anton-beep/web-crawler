@@ -145,7 +145,7 @@ func (d *DataBase) GetProject(id string) (*models.Project, error) {
 	}
 
 	ProjectQuery := psql.Select(
-		"id", "owner_id", "name", "start_url", "processing", "web_graph", "max_depth", "max_number_of_links").
+		"id", "owner_id", "name", "start_url", "processing", "web_graph", "max_depth", "max_number_of_links", "key_words", "main_ideas").
 		From("projects").
 		Where(sq.Eq{"id": id})
 
@@ -209,8 +209,8 @@ func (d *DataBase) CreateProject(project *models.Project) (string, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	query := psql.Insert("projects").
-		Columns("id", "owner_id", "name", "start_url", "processing", "web_graph", "dlq_sites", "max_depth", "max_number_of_links").
-		Values(sq.Expr("gen_random_uuid()"), project.OwnerID, project.Name, project.StartUrl, project.Processing, project.WebGraph, pq.Array(project.DlqSites), project.MaxDepth, project.MaxNumberOfLinks).
+		Columns("id", "owner_id", "name", "start_url", "processing", "web_graph", "dlq_sites", "max_depth", "max_number_of_links", "key_words", "main_ideas").
+		Values(sq.Expr("gen_random_uuid()"), project.OwnerID, project.Name, project.StartUrl, project.Processing, project.WebGraph, pq.Array(project.DlqSites), project.MaxDepth, project.MaxNumberOfLinks, project.KeyWords, project.MainIdeas).
 		Suffix("RETURNING id")
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -276,6 +276,8 @@ func (d *DataBase) UpdateProject(project *models.Project) error {
 			"processing": project.Processing,
 			"web_graph":  project.WebGraph,
 			"dlq_sites":  pq.Array(project.DlqSites),
+			"key_words":  project.KeyWords,
+			"main_ideas": project.MainIdeas,
 		}).
 		Where(sq.Eq{"id": project.ID})
 
