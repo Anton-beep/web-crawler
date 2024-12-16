@@ -1,6 +1,7 @@
 package receiver
 
 import (
+	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -228,5 +229,124 @@ func TestGetUser(t *testing.T) {
 	c.Set("user", &user1)
 
 	assert.NoError(t, r.GetUser(c))
+	assert.Equal(t, http.StatusOK, rec.Code)
+}
+
+func TestAuthMiddleware(t *testing.T) {
+	if !cfg.RunIntegrationTests {
+		return
+	}
+
+	e := echo.New()
+	r := receiver.New(1234, "../../../configs/.env")
+
+	// register
+	user1 := models.User{Username: "newUserAuthMiddleware" + strconv.Itoa(int(time.Now().Unix())),
+		Email:    "userAuthMiddleware" + strconv.Itoa(int(time.Now().Unix())) + "@bib.com",
+		Password: "Password123Password"}
+
+	req1 := httptest.NewRequest(
+		http.MethodPost,
+		"/api/user/register",
+		utils.GetReaderFromStruct(user1),
+	)
+	req1.Header.Set("Content-Type", "application/json; charset=utf8")
+
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req1, rec)
+
+	assert.NoError(t, r.Register(c))
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	out := struct {
+		Access string `json:"access"`
+	}{}
+	err := json.Unmarshal(rec.Body.Bytes(), &out)
+	assert.NoError(t, err)
+
+	// check middleware
+	c.Request().Header.Set("Authorization", "Bearer "+out.Access)
+
+	assert.NoError(t, r.AuthMiddleware(r.GetUser)(c))
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, user1.Username, c.Get("user").(*models.User).Username)
+}
+
+func TestUpdateUser(t *testing.T) {
+	if !cfg.RunIntegrationTests {
+		return
+	}
+
+	e := echo.New()
+	r := receiver.New(1234, "../../../configs/.env")
+
+	// register
+	user1 := models.User{
+		Username: "newUserUpdate" + strconv.Itoa(int(time.Now().Unix())),
+		Email:    "userUpdate" + strconv.Itoa(int(time.Now().Unix())) + "@bib.com",
+		Password: "Password123Password",
+	}
+
+	req1 := httptest.NewRequest(
+		http.MethodPost,
+		"/api/user/register",
+		utils.GetReaderFromStruct(user1),
+	)
+	req1.Header.Set("Content-Type", "application/json; charset=utf8")
+
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req1, rec)
+
+	assert.NoError(t, r.Register(c))
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	access := struct {
+		Access string `json:"access"`
+	}{}
+	err := json.Unmarshal(rec.Body.Bytes(), &access)
+	assert.NoError(t, err)
+
+	// update user
+	updateData := struct {
+		Username        string `json:"username"`
+		Email           string `json:"email"`
+		NewPassword     string `json:"new_password"`
+		CurrentPassword string `json:"current_password"`
+	}{
+		Username:        "updatedUsername" + strconv.Itoa(int(time.Now().Unix())),
+		Email:           "updatedEmail@bib.com",
+		NewPassword:     "NewPassword123Password",
+		CurrentPassword: user1.Password,
+	}
+
+	req3 := httptest.NewRequest(
+		http.MethodPut,
+		"/api/user",
+		utils.GetReaderFromStruct(updateData),
+	)
+	req3.Header.Set("Content-Type", "application/json; charset=utf8")
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req3, rec)
+
+	c.Set("user", &user1)
+	c.Request().Header.Set("Authorization", "Bearer "+access.Access)
+
+	assert.NoError(t, r.AuthMiddleware(r.UpdateUser)(c))
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	// verify updated user using login
+	req4 := httptest.NewRequest(
+		http.MethodPost,
+		"/api/user/login",
+		utils.GetReaderFromStruct(struct {
+			Login    string `json:"login"`
+			Password string `json:"password"`
+		}{updateData.Username, updateData.NewPassword}),
+	)
+	req4.Header.Set("Content-Type", "application/json; charset=utf8")
+	rec = httptest.NewRecorder()
+	c = e.NewContext(req4, rec)
+
+	assert.NoError(t, r.Login(c))
 	assert.Equal(t, http.StatusOK, rec.Code)
 }

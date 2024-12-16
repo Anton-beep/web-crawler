@@ -7,6 +7,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"go.uber.org/zap"
 	"web-crawler/internal/models"
+	"web-crawler/internal/utils"
 )
 
 // GetUserByUsername is a function that retrieves a user by their username
@@ -17,7 +18,7 @@ import (
 // returns:
 // - *models.User: the user with the given username
 // - error: an error if the user with the given username doesn't exist
-func (d DataBase) GetUserByUsername(username string) (*models.User, error) {
+func (d *DataBase) GetUserByUsername(username string) (*models.User, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	query := psql.Select("id", "username", "email", "password").From("users").Where(sq.Eq{"username": username})
@@ -28,7 +29,9 @@ func (d DataBase) GetUserByUsername(username string) (*models.User, error) {
 	}
 
 	var user models.User
-	err = d.postgres.Get(&user, queryString, args...)
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, []error{sql.ErrNoRows}, func() error {
+		return d.postgres.Get(&user, queryString, args...)
+	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, models.DataBaseNotFound
@@ -47,7 +50,7 @@ func (d DataBase) GetUserByUsername(username string) (*models.User, error) {
 // returns:
 // - *models.User: the user with the given email
 // - error: an error if the user with the given email doesn't exist
-func (d DataBase) GetUserByEmail(email string) (*models.User, error) {
+func (d *DataBase) GetUserByEmail(email string) (*models.User, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	query := psql.Select("id", "username", "email", "password").From("users").Where(sq.Eq{"email": email})
@@ -58,7 +61,9 @@ func (d DataBase) GetUserByEmail(email string) (*models.User, error) {
 	}
 
 	var user models.User
-	err = d.postgres.Get(&user, queryString, args...)
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, []error{sql.ErrNoRows}, func() error {
+		return d.postgres.Get(&user, queryString, args...)
+	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, models.DataBaseNotFound
@@ -77,7 +82,7 @@ func (d DataBase) GetUserByEmail(email string) (*models.User, error) {
 // returns:
 // - string: the ID of the newly created user
 // - error: an error if the user wasn't added
-func (d DataBase) AddUser(user *models.User) (string, error) {
+func (d *DataBase) AddUser(user *models.User) (string, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	query := psql.Insert("users").
@@ -91,7 +96,9 @@ func (d DataBase) AddUser(user *models.User) (string, error) {
 	}
 
 	var generatedID string
-	err = d.postgres.QueryRow(queryString, args...).Scan(&generatedID)
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, nil, func() error {
+		return d.postgres.QueryRow(queryString, args...).Scan(&generatedID)
+	})
 	if err != nil {
 		zap.S().Error("failed to query: ", err)
 		return "", fmt.Errorf("failed to query: %w", err)
@@ -112,7 +119,7 @@ func (d DataBase) AddUser(user *models.User) (string, error) {
 //
 // returns:
 // - error: an error if the user wasn't updated
-func (d DataBase) UpdateUser(user *models.User) error {
+func (d *DataBase) UpdateUser(user *models.User) error {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	query := psql.Update("users").
@@ -127,7 +134,11 @@ func (d DataBase) UpdateUser(user *models.User) error {
 		return fmt.Errorf("failed to build query: %w", err)
 	}
 
-	_, err = d.postgres.Exec(queryString, args...)
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, nil, func() error {
+		_, err := d.postgres.Exec(queryString, args...)
+		return err
+	})
+
 	if err != nil {
 		zap.S().Error("failed to exec: ", err)
 		return fmt.Errorf("failed to exec: %w", err)

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
 	"go.uber.org/zap"
-	"web-crawler/internal/connection"
 )
 
 type KafkaConfig struct {
@@ -24,6 +23,20 @@ type ReceiverConfig struct {
 	SecretSignature  string `env:"SECRET_SIGNATURE" env-default:"thisIsADefaultSignatureIfYouSeeItInYourCodeYouBetterChangeIt"`
 }
 
+type PostgresConfig struct {
+	Host     string `env:"POSTGRES_HOST" env-default:"localhost"`
+	Port     int    `env:"POSTGRES_PORT" env-default:"5432"`
+	User     string `env:"POSTGRES_USER" env-default:"root"`
+	Password string `env:"POSTGRES_PASSWORD" env-default:"123"`
+	DB       string `env:"POSTGRES_DB" env-default:"root"`
+}
+
+type RedisConfig struct {
+	Host             string `env:"REDIS_HOST" env-default:"localhost"`
+	Port             int    `env:"REDIS_PORT" env-default:"6379"`
+	AnalyserQueueKey string `env:"ANALYSER_QUEUE_KEY" env-default:"analyser-queue"`
+}
+
 type CollectorConfig struct {
 	Tags string `env:"TEXT_TAGS" env-default:""`
 }
@@ -34,14 +47,17 @@ type AnalyserConfig struct {
 
 // Config is a struct that contains the configuration for the application
 type Config struct {
-	Postgres            connection.PostgresConfig
-	Redis               connection.RedisConfig
+	Postgres            PostgresConfig
+	Redis               RedisConfig
 	Kafka               KafkaConfig
 	Receiver            ReceiverConfig
 	Collector           CollectorConfig
 	Analyser            AnalyserConfig
 	RunIntegrationTests bool `env:"RUN_INTEGRATION_TESTS" env-default:"false"`
 	Debug               bool `env:"DEBUG" env-default:"true"`
+	RetryPause          int  `env:"RETRY_PAUSE" env-default:"1000"`
+	RetryAttempts       int  `env:"RETRY_COUNT" env-default:"3"`
+	RetryTimeout        int  `env:"RETRY_TIMEOUT" env-default:"10000"`
 }
 
 // NewConfig is a function that creates a new Config struct

@@ -36,7 +36,7 @@ export default function Dashboard() {
                 }
             }}>
                 <DialogTrigger>
-                    <Button variant="jumping" className="bg-blue-600 text-primary mx-4">Open Project</Button>
+                    <Button variant="jumping" className="bg-blue-600 text-primary mx-4 h-10">Open Project</Button>
                 </DialogTrigger>
                 <OpenProjectCard projects={projects}/>
             </Dialog>
