@@ -63,9 +63,11 @@ export const HeroHighlight = ({
 export const Highlight = ({
                               children,
                               className,
+                              isLoadingAnimation = false,
                           }: {
     children: React.ReactNode;
     className?: string;
+    isLoadingAnimation?: boolean;
 }) => {
     return (
         <motion.span
@@ -79,6 +81,8 @@ export const Highlight = ({
                 duration: 2,
                 ease: "linear",
                 delay: 0.5,
+                repeat: isLoadingAnimation ? Infinity : 0,
+                repeatType: "reverse",
             }}
             style={{
                 backgroundRepeat: "no-repeat",

@@ -33,7 +33,11 @@ export default function LoginCard({setIsOpen}: { setIsOpen: (isOpen: boolean) =>
             navigate(0);
         }).catch((e) => {
             setIsError(true);
-            setMessage("Invalid login or password");
+            if (e.data?.mesage !== undefined) {
+                setMessage(e.data?.mesage);
+            } else {
+                setMessage("Error logging in");
+            }
             console.error(e);
         })
     }

@@ -21,7 +21,7 @@ export function YourDataIsLoading() {
                     className="div"
                 >
                     <h2 className="text-center text-white">
-                        <Highlight className="text-white">
+                        <Highlight className="text-white" isLoadingAnimation={true}>
                             Your data is loading
                         </Highlight>
                     </h2>

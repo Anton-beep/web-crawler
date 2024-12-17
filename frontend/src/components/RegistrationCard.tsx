@@ -52,7 +52,11 @@ export default function RegistrationCard({setIsOpen}: { setIsOpen: (isOpen: bool
             navigate(0);
         }).catch((e) => {
             setIsError(true);
-            setMessage("Error registering user");
+            if (e.data?.mesage !== undefined) {
+                setMessage(e.data?.mesage);
+            } else {
+                setMessage("Error registering user");
+            }
             console.error(e);
         })
     }

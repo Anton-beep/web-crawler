@@ -34,8 +34,6 @@ export default function Project() {
 
     const fetchData = useCallback(() => {
         Api.getProject(projectId as string).then((response) => {
-            console.log(response.data);
-
             if (response.data.name !== "") {
                 setProjectName(response.data.name);
             }
@@ -43,7 +41,6 @@ export default function Project() {
             if (graphData === null && response.data.web_graph !== "") {
                 try {
                     setGraphData(JSON.parse(response.data.web_graph));
-                    console.log("data", JSON.parse(response.data.web_graph))
                     setLoadingGraphGraphData(false);
                 } catch (e) {
                     setError("Error parsing project data");
