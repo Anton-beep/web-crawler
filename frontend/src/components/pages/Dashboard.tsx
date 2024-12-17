@@ -64,7 +64,7 @@ export default function Dashboard() {
             <div className="mb-12 text-xl font-extrabold">
                 You have created <span className="text-accent font-normal"> {projects.length} </span> projects!
             </div>
-            <div>
+            <div className="mb-12">
                 <div className="mb-12">
                     <Dialog open={isCreateDialogOpen} onOpenChange={(arg) => {
                         fetchProjects();

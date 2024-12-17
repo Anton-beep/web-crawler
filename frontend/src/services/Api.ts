@@ -61,7 +61,7 @@ class Api {
     }
 
     public deleteProject(id: string): Promise<AxiosResponse<ShortProject>> {
-        return this.axiosInstance.delete('/project/delete' + id);
+        return this.axiosInstance.delete('/project/delete/' + id);
     }
 
     public getUser(): Promise<AxiosResponse<any>> {

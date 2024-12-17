@@ -5,6 +5,16 @@ import Api from "@/services/Api.ts";
 import ReactMarkdown from 'react-markdown';
 import {YourDataIsLoading} from "@/components/YourDataIsLoading.tsx";
 import {BackgroundGradient} from "@/components/ui/background-gradient.tsx";
+import {Button} from "@/components/ui/button.tsx";
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger
+} from "@/components/ui/dialog.tsx";
+import { useNavigate } from 'react-router-dom';
 
 export default function Project() {
     const {projectId} = useParams();
@@ -19,6 +29,7 @@ export default function Project() {
     const [dimensions, setDimensions] = useState({width: window.innerWidth, height: window.innerHeight});
     const [loadingKeyWords, setLoadingKeyWords] = useState(true);
     const [loadingMainIdeas, setLoadingMainIdeas] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
     }, [projectId]);
@@ -125,6 +136,26 @@ export default function Project() {
         }
     }
 
+    const downloadGraphData = () => {
+        if (graphData) {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(graphData));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `web_graph_${projectId}.json`);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+    }
+
+    const deleteProject = () => {
+        Api.deleteProject(projectId as string).then(() => {
+            navigate("/dashboard");
+        }).catch((e) => {
+            console.error(e);
+        });
+    }
+
     return (
         <div className="items-center justify-center py-20 h-full md:h-auto relative w-full">
             <div className="flex justify-center mb-10">
@@ -142,6 +173,9 @@ export default function Project() {
                 <BackgroundGradient className="rounded-[22px] p-4 sm:p-10 bg-background">
                     {getGraphContent()}
                 </BackgroundGradient>
+            </div>
+            <div className="flex justify-center mb-10">
+                <Button onClick={downloadGraphData} variant="default">Download Graph Data</Button>
             </div>
             <div className="flex justify-center mb-10">
                 <div className="mx-10 w-full h-full ">
@@ -166,6 +200,23 @@ export default function Project() {
                         </div>
                     </BackgroundGradient>
                 </div>
+            </div>
+            <div>
+                <Dialog>
+                    <DialogTrigger>
+                        <Button variant="default" className="bg-error text-primary">
+                            Delete project
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle className="text-warning">Are you sure you want to delete this project?</DialogTitle>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button variant="default" className="bg-error text-primary" onClick={deleteProject}>Delete Permanently</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </div>
     )
