@@ -18,4 +18,4 @@ copy /Y configs\Docker.env configs\.env
 
 echo .env files are ready, starting the application using docker...
 
-docker compose -f deployments\docker-compose.yml up --build
+docker compose -f deployments\docker-compose.yml up --build -V
