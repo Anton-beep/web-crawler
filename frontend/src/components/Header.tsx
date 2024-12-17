@@ -6,6 +6,7 @@ import RegistrationCard from "@/components/RegistrationCard.tsx";
 import LoginCard from "@/components/LoginCard.tsx";
 import {Dialog, DialogTrigger} from "@/components/ui/dialog.tsx";
 import LogoutCard from "@/components/LogoutCard.tsx";
+import {getRandomGreeting} from "@/utils/getRandomGreeting.ts";
 
 export default function Header() {
     const [user, setUser] = useState<string | undefined>(undefined);
@@ -29,6 +30,7 @@ export default function Header() {
                         </DialogTrigger>
                         <LogoutCard/>
                     </Dialog>
+                    <div className="mx-4 text-primary font-bold hover:animate-bounce">{getRandomGreeting() + user}</div>
                 </div>
             )
         } else {

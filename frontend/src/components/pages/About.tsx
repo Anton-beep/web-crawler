@@ -1,6 +1,6 @@
 import AnimationOnScroll from "@/components/AnimationOnScroll.tsx";
-import { motion } from "framer-motion";
-import { Highlight } from "../ui/hero-highlight";
+import {motion} from "framer-motion";
+import {Highlight} from "../ui/hero-highlight";
 import {getSampleArcs, globeConfig} from "@/data/globeData.ts";
 import {World} from "@/components/ui/globe.tsx";
 
@@ -40,7 +40,7 @@ export default function About() {
             </div>
             <div className="flex flex-col md:flex-row items-center gap-8 mb-52 text-primary">
                 <div className="md:w-1/2">
-                    <img alt={"we need a picture here"} src="about_mackbook_content.png"
+                    <img alt={"we need a picture here"} src="about_page_1.png"
                          className="rounded border border-zinc-600"/>
                 </div>
                 <div className="md:w-1/2">
@@ -50,7 +50,9 @@ export default function About() {
                             tool
                             that
                             simplifies and enhances the <span className="text-accent">data collection process, empowering businesses and analysts to make
-                    informed decisions.</span></p>
+                    informed decisions.</span> Our crawler operates on a
+                            microservice architecture, ensuring <span className="text-accent">high performance through horizontal scalability.</span> Each
+                            page is processed by dedicated services for optimal efficiency.</p>
                     </AnimationOnScroll>
                 </div>
             </div>
@@ -59,14 +61,14 @@ export default function About() {
                 <div className="md:w-1/2">
                     <AnimationOnScroll startState={"transform translate-x-3/4"}
                                        endState={"transform translate-x-0"}>
-                        <p className="text-center text-3xl text-primary font-bold mx-32">Our crawler operates on a
-                            microservice architecture, ensuring <span className="text-accent">high performance through horizontal scalability.</span> Each
-                            page is processed by dedicated services for optimal efficiency.
+                        <p className="text-center text-3xl text-primary font-bold mx-32">Our <span
+                            className="text-warning">super intelligent tools </span> <span className="text-zinc-700">(still experimental tho)</span> can help you with solving any complex
+                            problems you might encounter on your way.
                         </p>
                     </AnimationOnScroll>
                 </div>
                 <div className="md:w-1/2">
-                    <img alt={"we need a picture here"} src="about_mackbook_content.png"
+                    <img alt={"we need a picture here"} src="about_page_2.png"
                          className="rounded border border-zinc-600"/>
                 </div>
             </div>

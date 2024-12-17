@@ -1,6 +1,6 @@
 import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 import Header from "./components/Header.tsx";
-// import Footer from "./components/Footer.tsx";
+import Footer from "./components/Footer.tsx";
 import About from "./components/pages/About.tsx";
 import Dashboard from "./components/pages/Dashboard.tsx";
 import Project from "@/components/pages/Project.tsx";
@@ -22,7 +22,7 @@ function App() {
                         <Route path="*" element={<About/>}/>
                     </Routes>
                 </div>
-                {/*<Footer/>*/}
+                <Footer/>
             </div>
         </Router>
     );

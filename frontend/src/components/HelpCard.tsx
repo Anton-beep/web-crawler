@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 
 export function HelpCard({setShowHelp}: { setShowHelp: (show: boolean) => void }) {
     return (
-        <Card className="mb-12 text-lg">
+        <Card className="mb-12 text-lg border-0">
             <CardHeader className="font-extrabold text-xl">
                 Are you new here?
             </CardHeader>
