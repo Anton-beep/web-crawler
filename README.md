@@ -132,7 +132,7 @@ To run the project in development mode:
 2. Install [Docker](https://www.docker.com/).
 3. Run the following command:
     ```bash
-    docker compose -f deployments/docker-compose-dev.yml up --build
+    docker compose -f deployments/docker-compose-dev.yml up --build -V
     ```
 
 In this mode, all third-party containers will be deployed with ports forwarded to `localhost`.

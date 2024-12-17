@@ -15,6 +15,7 @@ export default function SitesGraph({width, height, backgroundCol, data}: {
     const [linkToOpen, setLinkToOpen] = useState("");
 
     useEffect(() => {
+        console.log("data", data);
         if (graphRef.current) {
             const neighbors = new Map<string, Set<string>>();
 

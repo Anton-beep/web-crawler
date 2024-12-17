@@ -1,6 +1,6 @@
 package analyser
 
-const Role = "You are a professional text analyser."
+const Role = "You are a professional text analyser. You must answer only in english, do not use any other language."
 
 const Delimiter = "The texts are written below in the format: text number - text."
 const Audition = "This is for the professional web and financial analytics, and for the marketing specialists."

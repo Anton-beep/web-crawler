@@ -10,9 +10,9 @@ export default function OpenProjectCard({projects}: {projects: ShortProject[]}) 
         if (projects.length === 0) {
             return (
                 <div className="grid grid-cols-4 items-center gap-4">
-                    <Button className="col-span-4 bg-blue-600 text-primary">
+                    <div className="col-span-4 text-accent text-center font-bold">
                         No projects
-                    </Button>
+                    </div>
                 </div>
             )
         }
@@ -31,7 +31,7 @@ export default function OpenProjectCard({projects}: {projects: ShortProject[]}) 
     }
 
     return (
-        <DialogContent className="text-primary overflow-auto h-2/4">
+        <DialogContent className="text-primary overflow-auto min-h-[25vh] max-h-[50vh]">
             <DialogHeader>
                 <DialogTitle>Open Project</DialogTitle>
                 <DialogDescription>

@@ -65,7 +65,7 @@ func createDelimiter(texts []string) string {
 }
 
 func (s *Server) keyWordsPrompt(texts []string) (Response, error) {
-	resp, err := s.sendToLLM("llama3.1:latest", Role+KeyWorldPromptFormat+Delimiter+Audition+"\n"+createDelimiter(texts))
+	resp, err := s.sendToLLM("mistral-nemo:latest", Role+KeyWorldPromptFormat+Delimiter+Audition+"\n"+createDelimiter(texts))
 	if err != nil {
 		return Response{}, err
 	}
@@ -73,7 +73,7 @@ func (s *Server) keyWordsPrompt(texts []string) (Response, error) {
 }
 
 func (s *Server) MainIdeasPrompt(texts []string) (Response, error) {
-	resp, err := s.sendToLLM("llama3.1:latest", Role+MainIdeasPromptFormat+Delimiter+Audition+"\n"+createDelimiter(texts))
+	resp, err := s.sendToLLM("mistral-nemo:latest", Role+MainIdeasPromptFormat+Delimiter+Audition+"\n"+createDelimiter(texts))
 	if err != nil {
 		return Response{}, err
 	}
