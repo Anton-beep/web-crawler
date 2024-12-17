@@ -18,8 +18,10 @@ func Pong(c echo.Context) error {
 }
 
 type inCreate struct {
-	Name     string `json:"name"`
-	StartUrl string `json:"start_url"`
+	Name          string `json:"name"`
+	StartUrl      string `json:"start_url"`
+	NumberOfLinks int    `json:"number_of_links"`
+	Depth         int    `json:"depth"`
 }
 
 type outCreate struct {
@@ -34,7 +36,7 @@ func (r *Service) CreateProject(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, errMsg{Message: err.Error()})
 	}
 
-	if in.Name == "" || in.StartUrl == "" {
+	if in.Name == "" || in.StartUrl == "" || in.NumberOfLinks < 1 || in.Depth < 1 {
 		return c.JSON(http.StatusBadRequest, errMsg{Message: "invalid json"})
 	}
 
@@ -44,8 +46,8 @@ func (r *Service) CreateProject(c echo.Context) error {
 		Name:             in.Name,
 		StartUrl:         in.StartUrl,
 		OwnerID:          user.ID,
-		MaxNumberOfLinks: r.maxNumberOfLinks,
-		MaxDepth:         r.depth,
+		MaxNumberOfLinks: min(in.NumberOfLinks, r.maxNumberOfLinks),
+		MaxDepth:         min(in.Depth, r.depth),
 		Processing:       true,
 	}
 

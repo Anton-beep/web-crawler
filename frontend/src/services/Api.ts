@@ -43,8 +43,13 @@ class Api {
         )
     }
 
-    public createProject(name: string, startUrl: string) {
-        return this.axiosInstance.post('/project/create', {"name": name, "start_url": startUrl});
+    public createProject(name: string, startUrl: string, numberOfLinks: number, depth: number) {
+        return this.axiosInstance.post('/project/create', {
+            "name": name,
+            "start_url": startUrl,
+            "number_of_links": numberOfLinks,
+            "depth": depth
+        });
     }
 
     public getProject(id: string): Promise<AxiosResponse<Project>> {

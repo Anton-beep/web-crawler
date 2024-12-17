@@ -8,9 +8,11 @@ import {YourDataIsLoading} from "@/components/YourDataIsLoading.tsx";
 export default function Project() {
     const {projectId} = useParams();
     const [graphData, setGraphData] = useState<{ nodes: [], links: [] } | null>(null);
+    const [deadSites, setDeadSites] = useState<string[]>([]);
     const [mainIdeas, setMainIdeas] = useState("");
     const [keyWords, setKeyWords] = useState("");
     const [projectName, setProjectName] = useState("");
+    const [projectStartUrl, setProjectStartUrl] = useState("");
     const [loadingGraph, setLoadingGraphGraphData] = useState(true);
     const [error, setError] = useState("");
     const [dimensions, setDimensions] = useState({width: window.innerWidth, height: window.innerHeight});
@@ -38,7 +40,11 @@ export default function Project() {
                 setProjectName(response.data.name);
             }
 
-            if (graphData === null && response.data.web_graph !== "") {
+            if (response.data.start_url !== "") {
+                setProjectStartUrl(response.data.start_url);
+            }
+
+            if (graphData === null && !response.data.processing) {
                 try {
                     setGraphData(JSON.parse(response.data.web_graph));
                     setLoadingGraphGraphData(false);
@@ -47,6 +53,8 @@ export default function Project() {
                     setLoadingGraphGraphData(false);
                     console.error(e);
                 }
+
+                setDeadSites(response.data.dlq_sites);
             }
 
             if (response.data.key_words !== "") {
@@ -103,10 +111,29 @@ export default function Project() {
         }
     }
 
+    const getDeadLinksContent = () => {
+        if (deadSites === null || deadSites.length === 0) {
+            return
+        } else {
+            return (
+                <div className="mb-16 text-error text-center">
+                    <span className="text-lg font-bold">Dead links: </span>
+                    {deadSites.join(", ")}
+                </div>
+            );
+        }
+    }
+
     return (
         <div className="items-center justify-center py-20 h-full md:h-auto relative w-full">
             <div className="text-primary font-bold text-center text-xl mb-16">
                 Name of the project: <span className="text-accent">{projectName}</span>
+            </div>
+            <div className="text-primary font-bold text-center text-xl mb-16">
+                Start link: <span className="text-accent">{projectStartUrl}</span>
+            </div>
+            <div>
+                {getDeadLinksContent()}
             </div>
             <div className="flex justify-center mb-32">
                 {getGraphContent()}

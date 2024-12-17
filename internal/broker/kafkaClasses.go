@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"time"
 	"web-crawler/internal/config"
+	"web-crawler/internal/utils"
 )
 
 // Kafka is a struct that contains the kafka connection and the kafka config
@@ -56,24 +57,26 @@ func New(cfg *config.Config, createProducer bool, createConsumer bool, kafkaType
 }
 
 func (s Kafka) produce(message Message) error {
-	msg, err := json.Marshal(message)
-	if err != nil {
-		return err
-	}
+	return utils.RetryCount(3, 1*time.Second, nil, func() error {
+		msg, err := json.Marshal(message)
+		if err != nil {
+			return err
+		}
 
-	err = s.producer.SetWriteDeadline(time.Now().Add(10 * time.Second))
-	if err != nil {
-		return err
-	}
-	_, err = s.producer.WriteMessages(
-		kafka.Message{Value: msg},
-	)
-	zap.S().Debug("Message sent to partition")
-	if err != nil {
-		return err
-	}
+		err = s.producer.SetWriteDeadline(time.Now().Add(10 * time.Second))
+		if err != nil {
+			return err
+		}
+		_, err = s.producer.WriteMessages(
+			kafka.Message{Value: msg},
+		)
+		zap.S().Debug("Message sent to partition")
+		if err != nil {
+			return err
+		}
 
-	return nil
+		return nil
+	})
 }
 
 func (s Kafka) ProduceAnalyse(projectId string, analyseType string) error {

@@ -10,11 +10,12 @@ import checkValidUrl from "@/utils/checkValidUrl.ts";
 export default function CreateProjectCard() {
     const [name, setName] = useState("");
     const [url, setUrl] = useState("");
+    const [numberOfLinks, setNumberOfLinks] = useState(20);
+    const [depth, setDepth] = useState(2);
     const [message, setMessage] = useState("");
     const [isError, setIsError] = useState(false);
 
     const handleSend = async () => {
-
         if (!checkValidUrl(url)) {
             setIsError(true);
             setMessage("Invalid url");
@@ -24,6 +25,18 @@ export default function CreateProjectCard() {
         if (name === "") {
             setIsError(true);
             setMessage("Name cannot be empty");
+            return;
+        }
+
+        if (numberOfLinks < 1) {
+            setIsError(true);
+            setMessage("Number of links to scan in total must be greater than 0");
+            return;
+        }
+
+        if (depth < 1) {
+            setIsError(true);
+            setMessage("Depth must be greater than 0");
             return;
         }
 
@@ -46,11 +59,13 @@ export default function CreateProjectCard() {
             return;
         }
 
-        Api.createProject(name, url).then(() => {
+        Api.createProject(name, url, numberOfLinks, depth).then(() => {
             setIsError(false);
             setMessage("Project created successfully");
             setName("");
             setUrl("");
+            setNumberOfLinks(20);
+            setDepth(2);
         }).catch((e) => {
             setIsError(true);
             setMessage("Error creating project");
@@ -95,6 +110,38 @@ export default function CreateProjectCard() {
                         value={url}
                         onChange={e => {
                             setUrl(e.target.value)
+                            setMessage("")
+                        }}
+                    />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="url" className="text-right">
+                        Number of links to scan in total
+                    </Label>
+                    <Input
+                        type="number"
+                        id="numberOfLinks"
+                        placeholder="number of links to scan in total"
+                        className="col-span-3"
+                        value={numberOfLinks}
+                        onChange={e => {
+                            setNumberOfLinks(parseInt(e.target.value, 10))
+                            setMessage("")
+                        }}
+                    />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="url" className="text-right">
+                        Depth of scan
+                    </Label>
+                    <Input
+                        type="number"
+                        id="depth"
+                        placeholder="depth"
+                        className="col-span-3"
+                        value={depth}
+                        onChange={e => {
+                            setDepth(parseInt(e.target.value, 10))
                             setMessage("")
                         }}
                     />

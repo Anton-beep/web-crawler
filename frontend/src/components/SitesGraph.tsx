@@ -15,11 +15,10 @@ export default function SitesGraph({width, height, backgroundCol, data}: {
     const [linkToOpen, setLinkToOpen] = useState("");
 
     useEffect(() => {
-        console.log("data", data);
         if (graphRef.current) {
             const neighbors = new Map<string, Set<string>>();
 
-            data.links.forEach((link: any) => {
+            data.links.forEach((link: {source: string, target: string} | {source: {id: string}, target: {id: string}}) => {
                 let src;
                 if (typeof link.source === "string") {
                     src = link.source;
@@ -72,7 +71,7 @@ export default function SitesGraph({width, height, backgroundCol, data}: {
                 .nodeRelSize(5);
 
             // make first node bigger
-            Graph.nodeVal((node: NodeObject) => node === data.nodes[0] ? 1000 : 5);
+            Graph.nodeVal((node: NodeObject) => node === data.nodes[0] ? 100 : 5);
 
             const handleNodeClick = (node: NodeObject) => {
                 if (typeof node.id !== "string") {
@@ -173,13 +172,13 @@ export default function SitesGraph({width, height, backgroundCol, data}: {
                 updateHighlight();
             }));
 
-            Graph.nodeColor((node: any) => {
+            Graph.nodeColor((node) => {
                 if (typeof node.id !== "string") {
                     console.error("node.id is not string ", node)
                     return "rgba(0,255,255,0.6)";
                 }
 
-                let colorNum = node?.val;
+                const colorNum = (node as {val: number | undefined})?.val;
                 if (colorNum === undefined) {
                     console.error("node.val is undefined", node);
                     return "rgba(0,255,255,0.6)";

@@ -22,7 +22,7 @@ export default function Header() {
         if (user !== undefined) {
             return (
                 <div className="flex items-center">
-                    <HeaderButton toLink="/profile" buttonString={"Hello, " + user + "!"}/>
+                    <HeaderButton toLink="/profile" buttonString="Edit Profile"/>
                     <Dialog>
                         <DialogTrigger>
                             <Button variant="jumping" className="text-black mx-4">Log out</Button>
