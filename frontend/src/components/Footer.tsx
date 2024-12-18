@@ -7,7 +7,7 @@ export default function Footer() {
             <div className="bg-gray-800 text-primary py-4">
                 <div className="container flex justify-between w-full">
                     <div className="text-left ">
-                        <span className="ml-10">Web Crawler v1.0.0</span>
+                        <span className="ml-10">Web Crawler v2.0.0</span>
                         <Dialog>
                             <DialogTrigger>
                                 <Button variant="jumpingLink">
