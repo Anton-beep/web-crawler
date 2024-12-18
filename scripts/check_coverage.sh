@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# We run tests with coverage and save the result to a file
-sleep 15
-
 rm -rf cmd
 
 echo "Запуск тестов..."
