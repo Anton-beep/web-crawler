@@ -24,7 +24,6 @@ export default function LoginCard({setIsOpen}: { setIsOpen: (isOpen: boolean) =>
                 return;
             }
             Cookies.set("access", response.data.access, { sameSite: 'Strict' });
-            console.log(Cookies.get());
             setIsError(false);
             setMessage("You have been logged in successfully");
             setIsOpen(false);

@@ -16,10 +16,10 @@ type Request struct {
 }
 
 type Response struct {
-	Model          string `json:"model"`
-	Response       string `json:"response"`
-	Total_duration int    `json:"total_duration"`
-	Load_duration  int    `json:"load_duration"`
+	Model         string `json:"model"`
+	Response      string `json:"response"`
+	TotalDuration int    `json:"total_duration"`
+	LoadDuration  int    `json:"load_duration"`
 }
 
 func GetAllAnalyseMethods() []string {

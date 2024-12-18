@@ -30,7 +30,7 @@ export default function Profile() {
             setCurrentEmail(response.data?.email);
             setUsername(response.data?.username);
             setEmail(response.data?.email);
-        }).catch(err => console.log(err));
+        }).catch(err => console.error(err));
     }
 
     const handleSendData = () => {
@@ -53,7 +53,7 @@ export default function Profile() {
 
         if (!isUsernameValid(username)) {
             setIsError(true);
-            setMessage("Username must be at least 3 characters long.");
+            setMessage("Username must be at least 4 characters long.");
             return
         }
 
@@ -77,7 +77,7 @@ export default function Profile() {
         }).catch(err => {
             setIsError(true);
             setMessage("Error updating user data");
-            console.log(err)
+            console.error(err)
         });
     }
 
@@ -128,7 +128,7 @@ export default function Profile() {
                     </Label>
                     <Input
                         type="password"
-                        id="password"
+                        id="newPassword"
                         placeholder="write new password"
                         className="col-span-3"
                         onChange={e => setNewPassword(e.target.value)}
@@ -142,7 +142,7 @@ export default function Profile() {
                     </Label>
                     <Input
                         type="password"
-                        id="password"
+                        id="currentPassword"
                         placeholder="write current password"
                         className="col-span-3"
                         onChange={e => setCurrentPassword(e.target.value)}
