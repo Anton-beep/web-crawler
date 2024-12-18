@@ -37,11 +37,11 @@ and flexibility.
 which are hosted by `Nginx`. `Frontend` is written in React using Vite.
 
 **_Receivers_** (API-Gateway): Service which interacts with user. Receives requests from the `frontend` (actually it's a
-http request from the user) and sends them to the `Kafka`. Moreover, handles some user data, i.e. login, registration,
+http request from the user) and sends them to the `Kafka`. Moreover, it handles some user data, i.e. login, registration,
 profile update. Authentication is done by using [JWT tokens](https://golang-jwt.github.io/jwt/), users' passwords are
 stored in hash.
 
-**_Kafka_**: Service which organizes the work of `analysers`, `receivers`, and `collectors`.
+**_Kafka_**: This service organizes the work of `analysers`, `receivers`, and `collectors`.
 
 **_Collectors_**: Program which does the actual job in our application. `Collector` crawls around the web and collects
 texts and new links.
@@ -54,7 +54,7 @@ texts and new links.
 **_Redis_**: Redis provides storage for `collectors` when they are crawling around the web, so the write and read
 operations will be very fast.
 
-### API Documentation
+### API Documentation (Receiver)
 
 Documentation is now available at `docs/api/apiDocumentation.html` (just open it in your browser).
 
@@ -68,7 +68,7 @@ npx @redocly/cli build-docs api/openapi.json -o docs/api/apiDocumentation.html
 
 ### Production
 
-Install [Docker](https://www.docker.com)
+Do not forget to install [Docker](https://www.docker.com)
 
 #### Using Default Configuration
 
