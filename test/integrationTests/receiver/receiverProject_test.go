@@ -41,9 +41,11 @@ func TestCreateProject(t *testing.T) {
 	r := receiver.New(1234, "../../../configs/.env")
 
 	prj1 := struct {
-		Name     string `json:"name"`
-		StartUrl string `json:"start_url"`
-	}{"newCreateProject" + strconv.Itoa(int(time.Now().Unix())), "https://google.com"}
+		Name          string `json:"name"`
+		StartUrl      string `json:"start_url"`
+		NumberOfLinks int    `json:"number_of_links"`
+		Depth         int    `json:"depth"`
+	}{"newCreateProject" + strconv.Itoa(int(time.Now().Unix())), "https://google.com", 20, 20}
 
 	req := httptest.NewRequest(
 		http.MethodPost,
@@ -90,9 +92,11 @@ func TestGetProject(t *testing.T) {
 		http.MethodPost,
 		"/project/create",
 		utils.GetReaderFromStruct(struct {
-			Name     string `json:"name"`
-			StartUrl string `json:"start_url"`
-		}{"newGetProject" + strconv.Itoa(int(time.Now().Unix())), "https://google.com"}),
+			Name          string `json:"name"`
+			StartUrl      string `json:"start_url"`
+			NumberOfLinks int    `json:"number_of_links"`
+			Depth         int    `json:"depth"`
+		}{"newGetProject" + strconv.Itoa(int(time.Now().Unix())), "https://google.com", 20, 20}),
 	)
 	createReq.Header.Set("Content-Type", "application/json; charset=utf8")
 	createRec := httptest.NewRecorder()
@@ -154,9 +158,11 @@ func TestDeleteProject(t *testing.T) {
 		http.MethodPost,
 		"/project/create",
 		utils.GetReaderFromStruct(struct {
-			Name     string `json:"name"`
-			StartUrl string `json:"start_url"`
-		}{"newDeleteProject" + strconv.Itoa(int(time.Now().Unix())), "https://google.com"}),
+			Name          string `json:"name"`
+			StartUrl      string `json:"start_url"`
+			NumberOfLinks int    `json:"number_of_links"`
+			Depth         int    `json:"depth"`
+		}{"newDeleteProject" + strconv.Itoa(int(time.Now().Unix())), "https://google.com", 20, 20}),
 	)
 	createReq.Header.Set("Content-Type", "application/json; charset=utf8")
 	createRec := httptest.NewRecorder()
@@ -211,9 +217,11 @@ func TestGetAllShort(t *testing.T) {
 
 	// Create
 	prj1 := struct {
-		Name     string `json:"name"`
-		StartUrl string `json:"start_url"`
-	}{"newGetAllProject" + strconv.Itoa(int(time.Now().Unix())), "https://google.com"}
+		Name          string `json:"name"`
+		StartUrl      string `json:"start_url"`
+		NumberOfLinks int    `json:"number_of_links"`
+		Depth         int    `json:"depth"`
+	}{"newGetAllProject" + strconv.Itoa(int(time.Now().Unix())), "https://google.com", 20, 20}
 
 	createReq := httptest.NewRequest(
 		http.MethodPost,
@@ -235,9 +243,11 @@ func TestGetAllShort(t *testing.T) {
 
 	// Create 2
 	prj2 := struct {
-		Name     string `json:"name"`
-		StartUrl string `json:"start_url"`
-	}{"newCreateProject2" + strconv.Itoa(int(time.Now().Unix())), "https://google.com"}
+		Name          string `json:"name"`
+		StartUrl      string `json:"start_url"`
+		NumberOfLinks int    `json:"number_of_links"`
+		Depth         int    `json:"depth"`
+	}{"newCreateProject2" + strconv.Itoa(int(time.Now().Unix())), "https://google.com", 20, 20}
 
 	createReq2 := httptest.NewRequest(
 		http.MethodPost,

@@ -2,12 +2,11 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Web Crawler Api",
-    "description": "This is a documentation of endpoints served by the receiver (aka API-gateway). With this API you can user interacts with application, i.e. can authorize, creates projects.",
-    "version": "1.0.0"
+    "description": "This is a documentation of endpoints served by the receiver (aka API-gateway). With this API user interacts with the application, i.e. can authorize, create projects.",
+    "version": "2.0.0"
   },
   "externalDocs": {
     "description": "https://gitlab.crja72.ru/gospec/go1/web-crawler",
-    "url": "http://swagger.io"
   },
   "servers": [
     {
