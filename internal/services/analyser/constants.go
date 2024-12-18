@@ -1,9 +1,7 @@
 package analyser
 
-const Role = "You are a professional text analyser. You must answer only in english, do not use any other language."
+const KeyWordsPromptPrefix = "Extract the main keywords from the following texts and provide a list of keywords SEPARATED BY NEW LINES(\\n). The response must contain only the keywords as a list, nothing else. Answer in English, regardless of the language of the input texts.\n\nInput texts:\n"
+const KeyWordsPromptSuffix = "\nExtracted Keywords:\n"
 
-const Delimiter = "The texts are written below in the format: text number - text."
-const Audition = "This is for the professional web and financial analytics, and for the marketing specialists."
-
-const KeyWorldPromptFormat = "Select the keywords from the texts written and write them in the format: keyword - definition."
-const MainIdeasPromptFormat = "Summarize the texts written below making accents on key points."
+const MainIdeaPromptPrefix = "Extract the main idea from the following texts and provide a single paragraph summarizing the key information. The response must consist of only one paragraph with no subheadings or additional formatting. Answer in English, regardless of the language of the input texts.\n\nInput texts:\n"
+const MainIdeaPromptSuffix = "\nMain Ideas:\n"

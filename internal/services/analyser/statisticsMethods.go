@@ -65,15 +65,15 @@ func createDelimiter(texts []string) string {
 }
 
 func (s *Server) keyWordsPrompt(texts []string) (Response, error) {
-	resp, err := s.sendToLLM("mistral-nemo:latest", Role+KeyWorldPromptFormat+Delimiter+Audition+"\n"+createDelimiter(texts))
+	resp, err := s.sendToLLM("mistral-nemo:latest", KeyWordsPromptPrefix+createDelimiter(texts)+KeyWordsPromptSuffix)
 	if err != nil {
 		return Response{}, err
 	}
 	return resp, nil
 }
 
-func (s *Server) MainIdeasPrompt(texts []string) (Response, error) {
-	resp, err := s.sendToLLM("mistral-nemo:latest", Role+MainIdeasPromptFormat+Delimiter+Audition+"\n"+createDelimiter(texts))
+func (s *Server) mainIdeasPrompt(texts []string) (Response, error) {
+	resp, err := s.sendToLLM("mistral-nemo:latest", MainIdeaPromptPrefix+createDelimiter(texts)+MainIdeaPromptSuffix)
 	if err != nil {
 		return Response{}, err
 	}

@@ -55,7 +55,7 @@ func (s *Server) Start() {
 			}
 			project = nil
 		} else if message.AnalyseType == "MainIdeas" {
-			resp, err := s.MainIdeasPrompt(data.Text)
+			resp, err := s.mainIdeasPrompt(data.Text)
 			if err != nil {
 				zap.S().Debug(err)
 				continue
