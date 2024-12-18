@@ -72,11 +72,14 @@ Do not forget to install [Docker](https://www.docker.com)
 
 #### Using Default Configuration
 
-Use start script (choose yes for default .env variables):
+Use commands below (choose yes for default .env variables):
 
 - If you are using Linux:
    ```shell
-   bash scripts/start.sh
+    cp configs/Docker.env.template configs/Docker.env
+    cp frontend/.env.template frontend/.env
+    cp configs/Docker.env configs/.env
+    docker compose -f deployments/docker-compose.yml up --build -V
    ```
 
 - If you are using Windows:
