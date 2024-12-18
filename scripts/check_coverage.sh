@@ -1,6 +1,6 @@
 #!/bin/sh
 
-rm -rf cmd
+sleep 60
 
 echo "Запуск тестов..."
 if ! go test -count=1 -v -coverprofile=coverage.profile ./...; then

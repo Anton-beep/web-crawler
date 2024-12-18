@@ -51,4 +51,7 @@ cleanup:
     - cp configs/.env.template configs/.env
     - docker compose -f deployments/docker-compose-dev.yml down || true
     - docker rm -f test-container || true
+    - docker image prune -fa
+    - docker volume prune -f
+    - docker network prune -f
     - echo "Cleanup completed."
