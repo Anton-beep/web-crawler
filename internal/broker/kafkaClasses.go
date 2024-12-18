@@ -99,12 +99,13 @@ func (s *Kafka) produce(message Message) error {
 		if err != nil {
 			if err == io.EOF || errors.Is(err, syscall.WSAECONNABORTED) {
 				zap.S().Error("Broken pipe error, retrying...")
-				err := s.producer.Close()
+				err = s.producer.Close()
 				if err != nil {
 					zap.S().Error("Error while closing producer: ", err)
 				}
 
-				conn, err := getProducer(s.kafkaType, s.cfg)
+				var conn *kafka.Conn
+				conn, err = getProducer(s.kafkaType, s.cfg)
 				if err != nil {
 					return err
 				}
@@ -150,7 +151,7 @@ func (s *Kafka) Consume() (*Message, error) {
 	if err != nil {
 		return &Message{}, err
 	}
-	zap.S().Debug("message at topic/partition/offset %v/%v/%v: %s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
+	zap.S().Debugf("message at topic/partition/offset %v/%v/%v: %s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 	toReturn := Message{}
 	err = json.Unmarshal(m.Value, &toReturn)
 	if err != nil {
