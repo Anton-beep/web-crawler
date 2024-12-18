@@ -3,11 +3,8 @@ package broker
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
-	"io"
-	"syscall"
 	"time"
 	"web-crawler/internal/config"
 	"web-crawler/internal/utils"
@@ -97,29 +94,26 @@ func (s *Kafka) produce(message Message) error {
 		err := s.writeMessages(message)
 
 		if err != nil {
-			if err == io.EOF || errors.Is(err, syscall.WSAECONNABORTED) {
-				zap.S().Error("Broken pipe error, retrying...")
-				err = s.producer.Close()
-				if err != nil {
-					zap.S().Error("Error while closing producer: ", err)
-				}
-
-				var conn *kafka.Conn
-				conn, err = getProducer(s.kafkaType, s.cfg)
-				if err != nil {
-					return err
-				}
-
-				s.producer = conn
-				zap.S().Debug("Producer reconnected")
-
-				err = s.writeMessages(message)
+			zap.S().Error("Broken pipe error, retrying...")
+			err = s.producer.Close()
+			if err != nil {
+				zap.S().Error("Error while closing producer: ", err)
 			}
-			return err
+
+			var conn *kafka.Conn
+			conn, err = getProducer(s.kafkaType, s.cfg)
+			if err != nil {
+				return err
+			}
+
+			s.producer = conn
+			zap.S().Debug("Producer reconnected")
+
+			err = s.writeMessages(message)
 		}
 		zap.S().Debug("Message sent to partition")
 
-		return nil
+		return err
 	})
 }
 

@@ -30,7 +30,7 @@ export default function Profile() {
             setCurrentEmail(response.data?.email);
             setUsername(response.data?.username);
             setEmail(response.data?.email);
-        }).catch(err => console.log(err));
+        }).catch(err => console.error(err));
     }
 
     const handleSendData = () => {
@@ -77,7 +77,7 @@ export default function Profile() {
         }).catch(err => {
             setIsError(true);
             setMessage("Error updating user data");
-            console.log(err)
+            console.error(err)
         });
     }
 

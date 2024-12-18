@@ -16,7 +16,7 @@ export default function Header() {
     useEffect(() => {
         Api.getUser().then(response =>
             setUser(response.data?.username)
-        ).catch(err => err.status !== 401 && console.log(err));
+        ).catch(err => err.status !== 401 && console.error(err));
     }, [user]);
 
     const getUserButtons = () => {
@@ -30,7 +30,7 @@ export default function Header() {
                         </DialogTrigger>
                         <LogoutCard/>
                     </Dialog>
-                    <div className="mx-4 text-primary font-bold hover:animate-bounce">{getRandomGreeting() + user}</div>
+                    <div className="mx-4 text-primary font-bold hover:-translate-y-1 transform transition duration-200 hover:shadow-md">{getRandomGreeting() + user}</div>
                 </div>
             )
         } else {
