@@ -54,7 +54,7 @@ texts and new links.
 **_Redis_**: Redis provides storage for `collectors` when they are crawling around the web, so the write and read
 operations will be very fast.
 
-### API Documentation
+### API Documentation (Receiver)
 
 Documentation is now available at `docs/api/apiDocumentation.html` (just open it in your browser).
 
