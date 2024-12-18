@@ -3,8 +3,11 @@ package broker
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
+	"io"
+	"syscall"
 	"time"
 	"web-crawler/internal/config"
 	"web-crawler/internal/utils"
@@ -12,9 +15,10 @@ import (
 
 // Kafka is a struct that contains the kafka connection and the kafka config
 type Kafka struct {
-	cfg      *config.KafkaConfig
-	producer *kafka.Conn
-	consumer *kafka.Reader
+	cfg       *config.KafkaConfig
+	producer  *kafka.Conn
+	consumer  *kafka.Reader
+	kafkaType string
 }
 
 // Message is a struct that contains the link to parse, the project id and the depth
@@ -25,17 +29,31 @@ type Message struct {
 	AnalyseType string `json:"analyseType"`
 }
 
+func getProducer(kafkaType string, cfg *config.KafkaConfig) (*kafka.Conn, error) {
+	var conn *kafka.Conn
+	var err error
+	if kafkaType == "sites" {
+		conn, err = kafka.DialLeader(context.Background(), "tcp", cfg.Address, cfg.SitesTopic, cfg.Partition)
+	} else {
+		conn, err = kafka.DialLeader(context.Background(), "tcp", cfg.Address, cfg.AnalyseTopic, cfg.Partition)
+	}
+	return conn, err
+}
+
 // New is a function that creates a new SitesKafka struct
 func New(cfg *config.Config, createProducer bool, createConsumer bool, kafkaType string) *Kafka {
 	var conn *kafka.Conn
 	var r *kafka.Reader
+	var err error
+
 	if createProducer {
-		if kafkaType == "sites" {
-			conn, _ = kafka.DialLeader(context.Background(), "tcp", cfg.Kafka.Address, cfg.Kafka.SitesTopic, cfg.Kafka.Partition)
-		} else {
-			conn, _ = kafka.DialLeader(context.Background(), "tcp", cfg.Kafka.Address, cfg.Kafka.AnalyseTopic, cfg.Kafka.Partition)
+		conn, err = getProducer(kafkaType, &cfg.Kafka)
+		if err != nil {
+			zap.S().Error("Error while creating kafka producer")
+			return nil
 		}
 	}
+
 	if createConsumer {
 		if kafkaType == "sites" {
 			r = kafka.NewReader(kafka.ReaderConfig{
@@ -53,33 +71,58 @@ func New(cfg *config.Config, createProducer bool, createConsumer bool, kafkaType
 			})
 		}
 	}
-	return &Kafka{cfg: &cfg.Kafka, producer: conn, consumer: r}
+	return &Kafka{cfg: &cfg.Kafka, producer: conn, consumer: r, kafkaType: kafkaType}
 }
 
-func (s Kafka) produce(message Message) error {
-	return utils.RetryCount(3, 1*time.Second, nil, func() error {
-		msg, err := json.Marshal(message)
-		if err != nil {
-			return err
-		}
+func (s *Kafka) writeMessages(message Message) error {
+	msg, err := json.Marshal(message)
+	if err != nil {
+		return err
+	}
 
-		err = s.producer.SetWriteDeadline(time.Now().Add(10 * time.Second))
+	err = s.producer.SetWriteDeadline(time.Now().Add(10 * time.Second))
+	if err != nil {
+		return err
+	}
+
+	_, err = s.producer.WriteMessages(
+		kafka.Message{Value: msg},
+	)
+
+	return err
+}
+
+func (s *Kafka) produce(message Message) error {
+	return utils.RetryCount(4, 1*time.Second, nil, func() error {
+		err := s.writeMessages(message)
+
 		if err != nil {
+			if err == io.EOF || errors.Is(err, syscall.WSAECONNABORTED) {
+				zap.S().Error("Broken pipe error, retrying...")
+				err := s.producer.Close()
+				if err != nil {
+					zap.S().Error("Error while closing producer: ", err)
+				}
+
+				conn, err := getProducer(s.kafkaType, s.cfg)
+				if err != nil {
+					return err
+				}
+
+				s.producer = conn
+				zap.S().Debug("Producer reconnected")
+
+				err = s.writeMessages(message)
+			}
 			return err
 		}
-		_, err = s.producer.WriteMessages(
-			kafka.Message{Value: msg},
-		)
 		zap.S().Debug("Message sent to partition")
-		if err != nil {
-			return err
-		}
 
 		return nil
 	})
 }
 
-func (s Kafka) ProduceAnalyse(projectId string, analyseType string) error {
+func (s *Kafka) ProduceAnalyse(projectId string, analyseType string) error {
 	message := Message{
 		Link:        "",
 		ProjectId:   projectId,
@@ -90,7 +133,7 @@ func (s Kafka) ProduceAnalyse(projectId string, analyseType string) error {
 }
 
 // ProduceSite is a function that adds a site to parse to the kafka topic
-func (s Kafka) ProduceSite(link string, projectId string, depth int) error {
+func (s *Kafka) ProduceSite(link string, projectId string, depth int) error {
 	message := Message{
 		Link:        link,
 		ProjectId:   projectId,
@@ -101,7 +144,7 @@ func (s Kafka) ProduceSite(link string, projectId string, depth int) error {
 }
 
 // Consume is a function that reads a message from the kafka topic
-func (s Kafka) Consume() (*Message, error) {
+func (s *Kafka) Consume() (*Message, error) {
 	// make a new reader that consumes from topic-A
 	m, err := s.consumer.ReadMessage(context.Background())
 	if err != nil {
@@ -117,7 +160,7 @@ func (s Kafka) Consume() (*Message, error) {
 }
 
 // Close is a function that closes the kafka connection
-func (s Kafka) Close() error {
+func (s *Kafka) Close() error {
 	if err := s.producer.Close(); err != nil {
 		return err
 	}

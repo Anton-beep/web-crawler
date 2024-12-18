@@ -53,7 +53,7 @@ export default function Profile() {
 
         if (!isUsernameValid(username)) {
             setIsError(true);
-            setMessage("Username must be at least 3 characters long.");
+            setMessage("Username must be at least 4 characters long.");
             return
         }
 
@@ -128,7 +128,7 @@ export default function Profile() {
                     </Label>
                     <Input
                         type="password"
-                        id="password"
+                        id="newPassword"
                         placeholder="write new password"
                         className="col-span-3"
                         onChange={e => setNewPassword(e.target.value)}
@@ -142,7 +142,7 @@ export default function Profile() {
                     </Label>
                     <Input
                         type="password"
-                        id="password"
+                        id="currentPassword"
                         placeholder="write current password"
                         className="col-span-3"
                         onChange={e => setCurrentPassword(e.target.value)}
