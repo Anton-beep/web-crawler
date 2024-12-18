@@ -23,6 +23,29 @@ and flexibility.
 
 ---
 
+## Критерии
+
+**Архитектура:** анализатор, приемник и сборщик это три микросервиса, которые работают с помощью Kafka.
+
+**Контейнеризация и оркестрация:** `deployments/docker-compose.yml` для прода и `deployments/docker-compose-dev.yml` для разработки.
+
+**API-Gateway и маршрутизация:** приемник это и есть API-Gateway, документация к нему в `docs/api/apiDocumentation.html`. Nginx смотреть в `configs/nginx.conf`.
+
+**Отказоустойчивость:** `internal/utils/faulTolerance.go` - реализация отказоустойчивости.
+
+**Кэширование:** смотреть `deployments/docker-compose.yml`, `internal/connection/redis.go`, `internal/repository/databaseProject.go`
+
+**Хранилище данных:** смотреть `deployments/docker-compose.yml`, `internal/connection/postgres.go`, `internal/repository/databaseUser.go`
+
+**Асинхронное взаимодействие (опционально):** смотреть `deployments/docker-compose.yml`, `internal/broker/kafkaClasses.go`
+
+**Тестирование:** смотреть `test`
+
+**GitLab CI/CD:** смотреть pipeline
+
+**Документация:** смотреть README.md ниже 
+
+
 ## How it works
 
 <div align="center">
