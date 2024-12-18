@@ -14,7 +14,8 @@ import (
 
 type Server struct {
 	DataBase             models.DataBase
-	Broker               *broker.SitesKafka
+	Broker               *broker.Kafka
+	AnalyseBroker        *broker.Kafka
 	ProjectTemporaryData *models.ProjectTemporaryData
 	DeadListSites        []string
 	TextTags             map[string]bool
@@ -32,7 +33,8 @@ func NewServer(cfg *config.Config) *Server {
 	}
 	return &Server{
 		DataBase:             repository.NewDB(cfg),
-		Broker:               broker.New(cfg, true, true),
+		Broker:               broker.New(cfg, true, true, "sites"),
+		AnalyseBroker:        broker.New(cfg, true, false, "analyser"),
 		ProjectTemporaryData: &models.ProjectTemporaryData{},
 		TextTags:             tagMap,
 		Domain:               "",
@@ -47,7 +49,7 @@ func NewServer(cfg *config.Config) *Server {
 func (s *Server) Start() {
 	for {
 		zap.S().Debug("waiting for new message...")
-		message, err := s.Broker.CheckSitesToParse()
+		message, err := s.Broker.Consume()
 		zap.S().Debug("received message")
 		if err != nil {
 			zap.S().Fatalf("failed to check sites to parse, CheckSitesToParse returned err: %s", err)

@@ -4,6 +4,7 @@ import (
 	"go.uber.org/zap"
 	"strings"
 	"web-crawler/internal/models"
+	"web-crawler/internal/services/analyser"
 )
 
 func GenerateLinkSlug(projectId, link string) string {
@@ -71,8 +72,8 @@ func (s *Server) WriteData() {
 	actualData.DeadListQueueSites = append(actualData.DeadListQueueSites, s.DeadListSites...)
 
 	if actualData.TotalCollectorCounter == 0 || actualData.CollectorCounterQueue == 0 {
-		actualData.TotalCollectorCounter = 0
-		actualData.CollectorCounterQueue = 0
+		actualData.TotalCollectorCounter = -1
+		actualData.CollectorCounterQueue = -1
 		actualData.Links = strings.Trim(actualData.Links, ",")
 		actualData.Nodes = strings.Trim(actualData.Nodes, ",")
 		prj, err := s.DataBase.GetProject(s.Message.ProjectId)
@@ -83,6 +84,12 @@ func (s *Server) WriteData() {
 			prj.WebGraph = `{"nodes": [` + actualData.Nodes + `], "links": [` + actualData.Links + `]}`
 			prj.DlqSites = actualData.DeadListQueueSites
 			err = s.DataBase.UpdateProject(prj)
+			for _, analyseType := range analyser.GetAllAnalyseMethods() {
+				err = s.AnalyseBroker.ProduceAnalyse(s.Message.ProjectId, analyseType)
+				if err != nil {
+					zap.S().Errorf("failed to produce analyse message: %s", err)
+				}
+			}
 			if err != nil {
 				zap.S().Errorf("failed to update project: %s", err)
 			}

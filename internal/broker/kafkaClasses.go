@@ -7,10 +7,11 @@ import (
 	"go.uber.org/zap"
 	"time"
 	"web-crawler/internal/config"
+	"web-crawler/internal/utils"
 )
 
-// SitesKafka is a struct that contains the kafka connection and the kafka config
-type SitesKafka struct {
+// Kafka is a struct that contains the kafka connection and the kafka config
+type Kafka struct {
 	cfg      *config.KafkaConfig
 	producer *kafka.Conn
 	consumer *kafka.Reader
@@ -18,60 +19,89 @@ type SitesKafka struct {
 
 // Message is a struct that contains the link to parse, the project id and the depth
 type Message struct {
-	Link      string `json:"link"`
-	ProjectId string `json:"projectId"`
-	Depth     int    `json:"depth"`
+	Link        string `json:"link"`
+	ProjectId   string `json:"projectId"`
+	Depth       int    `json:"depth"`
+	AnalyseType string `json:"analyseType"`
 }
 
 // New is a function that creates a new SitesKafka struct
-func New(cfg *config.Config, createProducer bool, createConsumer bool) *SitesKafka {
+func New(cfg *config.Config, createProducer bool, createConsumer bool, kafkaType string) *Kafka {
 	var conn *kafka.Conn
 	var r *kafka.Reader
 	if createProducer {
-		conn, _ = kafka.DialLeader(context.Background(), "tcp", cfg.Kafka.Address, cfg.Kafka.Topic, cfg.Kafka.Partition)
+		if kafkaType == "sites" {
+			conn, _ = kafka.DialLeader(context.Background(), "tcp", cfg.Kafka.Address, cfg.Kafka.SitesTopic, cfg.Kafka.Partition)
+		} else {
+			conn, _ = kafka.DialLeader(context.Background(), "tcp", cfg.Kafka.Address, cfg.Kafka.AnalyseTopic, cfg.Kafka.Partition)
+		}
 	}
 	if createConsumer {
-		r = kafka.NewReader(kafka.ReaderConfig{
-			Brokers:  []string{cfg.Kafka.Address},
-			GroupID:  cfg.Kafka.SitesGroupID,
-			Topic:    cfg.Kafka.Topic,
-			MaxBytes: 10e6, // 10MB
-		})
+		if kafkaType == "sites" {
+			r = kafka.NewReader(kafka.ReaderConfig{
+				Brokers:  []string{cfg.Kafka.Address},
+				GroupID:  cfg.Kafka.SitesGroupID,
+				Topic:    cfg.Kafka.SitesTopic,
+				MaxBytes: 10e6, // 10MB
+			})
+		} else {
+			r = kafka.NewReader(kafka.ReaderConfig{
+				Brokers:  []string{cfg.Kafka.Address},
+				GroupID:  cfg.Kafka.AnalyseGroupID,
+				Topic:    cfg.Kafka.AnalyseTopic,
+				MaxBytes: 10e6, // 10MB
+			})
+		}
 	}
-	return &SitesKafka{cfg: &cfg.Kafka, producer: conn, consumer: r}
+	return &Kafka{cfg: &cfg.Kafka, producer: conn, consumer: r}
 }
 
-// AddSiteToParse is a function that adds a site to parse to the kafka topic
-func (s SitesKafka) AddSiteToParse(link string, projectId string, depth int) error {
-	// to produce message
+func (s Kafka) produce(message Message) error {
+	return utils.RetryCount(3, 1*time.Second, nil, func() error {
+		msg, err := json.Marshal(message)
+		if err != nil {
+			return err
+		}
 
+		err = s.producer.SetWriteDeadline(time.Now().Add(10 * time.Second))
+		if err != nil {
+			return err
+		}
+		_, err = s.producer.WriteMessages(
+			kafka.Message{Value: msg},
+		)
+		zap.S().Debug("Message sent to partition")
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (s Kafka) ProduceAnalyse(projectId string, analyseType string) error {
 	message := Message{
-		Link:      link,
-		ProjectId: projectId,
-		Depth:     depth,
+		Link:        "",
+		ProjectId:   projectId,
+		Depth:       0,
+		AnalyseType: analyseType,
 	}
-	msg, err := json.Marshal(message)
-	if err != nil {
-		return err
-	}
-
-	err = s.producer.SetWriteDeadline(time.Now().Add(10 * time.Second))
-	if err != nil {
-		return err
-	}
-	_, err = s.producer.WriteMessages(
-		kafka.Message{Value: msg},
-	)
-	zap.S().Debug("Message sent to partition")
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.produce(message)
 }
 
-// CheckSitesToParse is a function that reads a message from the kafka topic
-func (s SitesKafka) CheckSitesToParse() (*Message, error) {
+// ProduceSite is a function that adds a site to parse to the kafka topic
+func (s Kafka) ProduceSite(link string, projectId string, depth int) error {
+	message := Message{
+		Link:        link,
+		ProjectId:   projectId,
+		Depth:       depth,
+		AnalyseType: "",
+	}
+	return s.produce(message)
+}
+
+// Consume is a function that reads a message from the kafka topic
+func (s Kafka) Consume() (*Message, error) {
 	// make a new reader that consumes from topic-A
 	m, err := s.consumer.ReadMessage(context.Background())
 	if err != nil {
@@ -87,7 +117,7 @@ func (s SitesKafka) CheckSitesToParse() (*Message, error) {
 }
 
 // Close is a function that closes the kafka connection
-func (s SitesKafka) Close() error {
+func (s Kafka) Close() error {
 	if err := s.producer.Close(); err != nil {
 		return err
 	}

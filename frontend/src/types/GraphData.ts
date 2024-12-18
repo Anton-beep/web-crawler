@@ -1,7 +1,11 @@
-import { GraphLink } from './GraphLink.ts'
-import { GraphNode } from './GraphNode'
-
 export interface GraphData {
-    nodes: GraphNode[]
-    links: GraphLink[]
+    nodes: {
+        id: string,
+        group?: string,
+        neighbors?: string[],
+    }[]
+    links: {
+        source: string,
+        target: string
+    }[]
 }

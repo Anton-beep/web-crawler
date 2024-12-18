@@ -10,11 +10,18 @@ type Project struct {
 	DlqSites         []string `db:"dlq_sites" json:"dlq_sites"`
 	MaxDepth         int      `db:"max_depth" json:"max_depth"`
 	MaxNumberOfLinks int      `db:"max_number_of_links" json:"max_number_of_links"`
+	KeyWords         string   `db:"key_words" json:"key_words"`
+	MainIdeas        string   `db:"main_ideas" json:"main_ideas"`
 }
 
 type ShortProject struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type AnalyserTask struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
 }
 
 type ProjectTemporaryData struct {
@@ -25,6 +32,13 @@ type ProjectTemporaryData struct {
 	TotalCollectorCounter int      `json:"collector_counter"`
 	CollectorCounterQueue int      `json:"collector_counter_queue"`
 	DeadListQueueSites    []string `json:"dlq_sites"`
+}
+
+type User struct {
+	ID       string `db:"id" json:"id"`
+	Username string `db:"username" json:"username"`
+	Email    string `db:"email" json:"email"`
+	Password string `db:"password" json:"password"`
 }
 
 // DataBase is an interface that contains methods for working with the database
@@ -48,4 +62,15 @@ type DataBase interface {
 	CheckCollectorCounter(id string) error
 
 	GetProjectMaxDepth(id string) (int, error)
+
+	Push2Queue(key string, value interface{}) error
+	PopFromQueue(key string) (string, error)
+
+	AddAnalyserTask(projectId, typeOfAnalysis string) error
+	GetAnalyserTask() (AnalyserTask, error)
+
+	GetUserByUsername(username string) (*User, error)
+	GetUserByEmail(email string) (*User, error)
+	AddUser(user *User) (string, error)
+	UpdateUser(user *User) error
 }

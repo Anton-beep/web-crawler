@@ -16,6 +16,9 @@
 package main
 
 import (
+	"os"
+	"os/signal"
+	"syscall"
 	"web-crawler/internal/config"
 	"web-crawler/internal/services/receiver"
 )
@@ -24,5 +27,13 @@ func main() {
 	cfg := config.NewConfig()
 	config.InitLogger(cfg.Debug)
 
-	receiver.New(cfg.Receiver.Port).Start()
+	r := receiver.New(cfg.Receiver.Port)
+
+	r.Start()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+
+	r.Stop()
 }

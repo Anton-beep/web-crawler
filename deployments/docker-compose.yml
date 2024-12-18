@@ -38,7 +38,7 @@ services:
       postgres:
         condition: service_healthy
       redis:
-         condition: service_healthy
+        condition: service_healthy
 
   receiver:
     build:
@@ -52,25 +52,30 @@ services:
       postgres:
         condition: service_healthy
       redis:
-         condition: service_healthy
+        condition: service_healthy
 
-  frontend:
+  analyser:
     build:
       context: ../
-      dockerfile: build/frontend/Dockerfile
-    container_name: frontend
+      dockerfile: build/analyser/Dockerfile
     networks:
       - service-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   nginx:
-    image: nginx
+    build:
+      context: ../
+      dockerfile: build/nginx/Dockerfile
     ports:
       - "85:80"
-    volumes:
-      - ../configs/nginx/:/etc/nginx/
     depends_on:
       - receiver
-      - frontend
     networks:
       - service-network
 

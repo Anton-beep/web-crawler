@@ -2,16 +2,15 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Web Crawler Api",
-    "description": "Description is to be done ",
-    "version": "0.0.1"
+    "description": "This is a documentation of endpoints served by the receiver (aka API-gateway). With this API user interacts with the application, i.e. can authorize, create projects.",
+    "version": "2.0.0"
   },
   "externalDocs": {
-    "description": "NEED TO PUT GITLAB/GITHUB LINK HERE",
-    "url": "http://swagger.io"
+    "description": "https://gitlab.crja72.ru/gospec/go1/web-crawler",
   },
   "servers": [
     {
-      "url": "NEED TO PUT SERVER URL HERE"
+      "url": "http://localhost:8080"
     }
   ],
   "tags": [
@@ -36,7 +35,21 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "./schemas.json#/components/schemas/User"
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "username"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "bib@bib.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "UserPassword123"
+                  }
+                }
               }
             }
           }
@@ -59,7 +72,7 @@
       }
     },
     "/user/login": {
-      "get": {
+      "post": {
         "tags": [
           "user"
         ],
@@ -69,7 +82,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "./schemas.json#/components/schemas/LoginUser"
+                "type": "object",
+                "properties": {
+                  "login": {
+                    "type": "string",
+                    "example": "username or email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "UserPassword123"
+                  }
+                }
               }
             }
           }
@@ -91,30 +114,7 @@
         }
       }
     },
-    "/user/logout": {
-      "get": {
-        "tags": [
-          "user"
-        ],
-        "summary": "Logs out current logged in user session",
-        "description": "",
-        "operationId": "logoutUser",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "./schemas.json#/components/schemas/BasicServerAnswer"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/user/getMe": {
+    "/user/get": {
       "get": {
         "tags": [
           "user"
@@ -127,7 +127,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "example": "your access token"
+              "example": "Bearer + your access token"
             }
           }
         ],
@@ -137,7 +137,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./schemas.json#/components/schemas/User"
+                  "type": "object",
+                  "properties": {
+                    "username": {
+                      "type": "string",
+                      "example": "username"
+                    },
+                    "email": {
+                      "type": "string",
+                      "example": "bib@bib.com"
+                    }
+                  }
                 }
               }
             }
@@ -151,7 +161,7 @@
         }
       }
     },
-    "/user/edit": {
+    "/user/update": {
       "put": {
         "parameters": [
           {
@@ -160,60 +170,38 @@
             "required": true,
             "schema": {
               "type": "string",
-              "example": "your access token"
+              "example": "Bearer + your access token"
             }
           }
         ],
         "tags": [
           "user"
         ],
-        "summary": "Edit user",
+        "summary": "Update user",
         "requestBody": {
           "description": "User to edit",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "./schemas.json#/components/schemas/User"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "$ref": "./responses.json#/components/responses/BasicSuccess"
-          },
-          "400": {
-            "$ref": "./responses.json#/components/responses/BasicError"
-          },
-          "401": {
-            "$ref": "./responses.json#/components/responses/Unauthorized"
-          }
-        }
-      }
-    },
-    "/user/delete": {
-      "delete": {
-        "parameters": [
-          {
-            "in": "header",
-            "name": "Authorization",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "your access token"
-            }
-          }
-        ],
-        "tags": [
-          "user"
-        ],
-        "summary": "Delete user",
-        "requestBody": {
-          "description": "User to delete",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "./schemas.json#/components/schemas/DeleteUser"
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "username"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "bib@bib.com"
+                  },
+                  "new_password": {
+                    "type": "string",
+                    "example": "UserPassword123"
+                  },
+                  "current_password": {
+                    "type": "string",
+                    "example": "UserPassword123"
+                  }
+                }
               }
             }
           }
@@ -397,16 +385,16 @@
               "example": "your access token"
             }
           },
-            {
-                "in": "path",
-                "name": "id",
-                "required": true,
-                "schema": {
-                "type": "string",
-                "example": "abc10"
-                },
-                "description": "ID of the project"
-            }
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "abc10"
+            },
+            "description": "ID of the project"
+          }
         ],
         "tags": [
           "project"

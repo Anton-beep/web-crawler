@@ -12,16 +12,26 @@ import (
 	"github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
+	"time"
 	"web-crawler/internal/config"
 	"web-crawler/internal/connection"
 	"web-crawler/internal/models"
+	"web-crawler/internal/utils"
 )
 
 // DataBase is a struct that contains the
 // connection to the Postgres and Redis databases
 type DataBase struct {
-	postgres *sqlx.DB
-	redis    *redis.Client
+	postgres         *sqlx.DB
+	redis            *redis.Client
+	analyserQueueKey string
+	retryAttempts    int
+	retryPause       time.Duration
+	retryTimeout     time.Duration
+}
+
+func (d *DataBase) isUUIDCorrect(id string) bool {
+	return uuid.Validate(id) == nil
 }
 
 // GetProjectMaxDepth is a function that returns
@@ -34,8 +44,8 @@ type DataBase struct {
 //   - int: the maximum depth of the project
 //   - error: an error if the project with the
 //     given id doesn't exist
-func (d DataBase) GetProjectMaxDepth(id string) (int, error) {
-	err := d.checkIfIdExists(id)
+func (d *DataBase) GetProjectMaxDepth(id string) (int, error) {
+	err := d.checkIfProjectIdExists(id)
 	if err != nil {
 		return 0, err
 	}
@@ -53,7 +63,7 @@ func (d DataBase) GetProjectMaxDepth(id string) (int, error) {
 	}
 
 	var depth int
-	err = d.postgres.Get(&depth, ProjectQueryString, args...)
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, nil, func() error { return d.postgres.Get(&depth, ProjectQueryString, args...) })
 	if err != nil {
 		return 0, err
 	}
@@ -69,8 +79,8 @@ func (d DataBase) GetProjectMaxDepth(id string) (int, error) {
 // returns:
 //   - error: an error if the project with the
 //     given id doesn't exist or the collector counter is negative
-func (d DataBase) CheckCollectorCounter(id string) error {
-	err := d.checkIfIdExists(id)
+func (d *DataBase) CheckCollectorCounter(id string) error {
+	err := d.checkIfProjectIdExists(id)
 	if err != nil {
 		return err
 	}
@@ -88,7 +98,7 @@ func (d DataBase) CheckCollectorCounter(id string) error {
 	return nil
 }
 
-func (d DataBase) checkIfIdExists(id string) error {
+func (d *DataBase) checkIfProjectIdExists(id string) error {
 	if uuid.Validate(id) != nil {
 		return models.DataBaseWrongID
 	}
@@ -100,8 +110,9 @@ func (d DataBase) checkIfIdExists(id string) error {
 	if err != nil {
 		return fmt.Errorf("failed to build check query: %w", err)
 	}
+
 	var _id string
-	err = d.postgres.Get(&_id, checkQueryString, args...)
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, []error{sql.ErrNoRows}, func() error { return d.postgres.Get(&_id, checkQueryString, args...) })
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return models.DataBaseNotFound
@@ -118,8 +129,8 @@ func (d DataBase) checkIfIdExists(id string) error {
 //
 // returns:
 // - *Project: the project with the given id
-func (d DataBase) GetProject(id string) (*models.Project, error) {
-	err := d.checkIfIdExists(id)
+func (d *DataBase) GetProject(id string) (*models.Project, error) {
+	err := d.checkIfProjectIdExists(id)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +145,7 @@ func (d DataBase) GetProject(id string) (*models.Project, error) {
 	}
 
 	var dlqSites []string
-	err = d.postgres.QueryRow(DlqSitesQueryString, args...).Scan(pq.Array(&dlqSites))
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, []error{sql.ErrNoRows}, func() error { return d.postgres.QueryRow(DlqSitesQueryString, args...).Scan(pq.Array(&dlqSites)) })
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, models.DataBaseNotFound
@@ -144,7 +155,7 @@ func (d DataBase) GetProject(id string) (*models.Project, error) {
 	}
 
 	ProjectQuery := psql.Select(
-		"id", "owner_id", "name", "start_url", "processing", "web_graph", "max_depth", "max_number_of_links").
+		"id", "owner_id", "name", "start_url", "processing", "web_graph", "max_depth", "max_number_of_links", "key_words", "main_ideas").
 		From("projects").
 		Where(sq.Eq{"id": id})
 
@@ -155,7 +166,7 @@ func (d DataBase) GetProject(id string) (*models.Project, error) {
 	}
 
 	var project models.Project
-	err = d.postgres.Get(&project, ProjectQueryString, args...)
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, nil, func() error { return d.postgres.Get(&project, ProjectQueryString, args...) })
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, models.DataBaseNotFound
@@ -177,8 +188,14 @@ func (d DataBase) GetProject(id string) (*models.Project, error) {
 // returns:
 //   - *ProjectTemporaryData: the temporary data of
 //     the project with the given id
-func (d DataBase) GetProjectTemporaryData(id string) (*models.ProjectTemporaryData, error) {
-	val, err := d.redis.Get(context.Background(), id).Result()
+func (d *DataBase) GetProjectTemporaryData(id string) (*models.ProjectTemporaryData, error) {
+	var val string
+	err := utils.RetryCount(d.retryAttempts, d.retryPause, []error{redis.Nil}, func() error {
+		v, err := d.redis.Get(context.Background(), id).Result()
+		val = v
+		return err
+	})
+
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return nil, models.DataBaseNotFound
@@ -204,12 +221,12 @@ func (d DataBase) GetProjectTemporaryData(id string) (*models.ProjectTemporaryDa
 //
 // returns:
 // - string: the id of the created project
-func (d DataBase) CreateProject(project *models.Project) (string, error) {
+func (d *DataBase) CreateProject(project *models.Project) (string, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	query := psql.Insert("projects").
-		Columns("id", "owner_id", "name", "start_url", "processing", "web_graph", "dlq_sites", "max_depth", "max_number_of_links").
-		Values(sq.Expr("gen_random_uuid()"), project.OwnerID, project.Name, project.StartUrl, project.Processing, project.WebGraph, pq.Array(project.DlqSites), project.MaxDepth, project.MaxNumberOfLinks).
+		Columns("id", "owner_id", "name", "start_url", "processing", "web_graph", "dlq_sites", "max_depth", "max_number_of_links", "key_words", "main_ideas").
+		Values(sq.Expr("gen_random_uuid()"), project.OwnerID, project.Name, project.StartUrl, project.Processing, project.WebGraph, pq.Array(project.DlqSites), project.MaxDepth, project.MaxNumberOfLinks, project.KeyWords, project.MainIdeas).
 		Suffix("RETURNING id")
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -218,7 +235,10 @@ func (d DataBase) CreateProject(project *models.Project) (string, error) {
 	}
 
 	var generatedID string
-	err = d.postgres.QueryRow(queryString, args...).Scan(&generatedID)
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, nil, func() error {
+		return d.postgres.QueryRow(queryString, args...).Scan(&generatedID)
+	})
+
 	if err != nil {
 		zap.S().Debug("failed to create project", err)
 		return "", fmt.Errorf("failed to create project: %w", err)
@@ -241,15 +261,17 @@ func (d DataBase) CreateProject(project *models.Project) (string, error) {
 //
 // returns:
 // - error: an error if the temporary data of the project
-func (d DataBase) SetProjectTemporaryData(id string, data *models.ProjectTemporaryData) error {
+func (d *DataBase) SetProjectTemporaryData(id string, data *models.ProjectTemporaryData) error {
 	val, err := json.Marshal(data)
 	if err != nil {
 		zap.S().Debug("failed to serialize project temporary data", err)
 		return fmt.Errorf("failed to serialize project temporary data: %w", err)
 	}
 
-	d.redis.Set(context.Background(), id, val, 0)
-	return nil
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, nil, func() error {
+		return d.redis.Set(context.Background(), id, val, 0).Err()
+	})
+	return err
 }
 
 // UpdateProject is a function that updates the project
@@ -259,8 +281,8 @@ func (d DataBase) SetProjectTemporaryData(id string, data *models.ProjectTempora
 //
 // returns:
 // - error: an error if the project with the given id doesn't exist
-func (d DataBase) UpdateProject(project *models.Project) error {
-	err := d.checkIfIdExists(project.ID)
+func (d *DataBase) UpdateProject(project *models.Project) error {
+	err := d.checkIfProjectIdExists(project.ID)
 	if err != nil {
 		return err
 	}
@@ -275,6 +297,8 @@ func (d DataBase) UpdateProject(project *models.Project) error {
 			"processing": project.Processing,
 			"web_graph":  project.WebGraph,
 			"dlq_sites":  pq.Array(project.DlqSites),
+			"key_words":  project.KeyWords,
+			"main_ideas": project.MainIdeas,
 		}).
 		Where(sq.Eq{"id": project.ID})
 
@@ -284,7 +308,11 @@ func (d DataBase) UpdateProject(project *models.Project) error {
 		return fmt.Errorf("failed to build update query: %w", err)
 	}
 
-	_, err = d.postgres.Exec(queryString, args...)
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, []error{sql.ErrNoRows}, func() error {
+		_, err := d.postgres.Exec(queryString, args...)
+		return err
+	})
+
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return models.DataBaseNotFound
@@ -303,8 +331,8 @@ func (d DataBase) UpdateProject(project *models.Project) error {
 //
 // returns:
 // - error: an error if the project with the given id doesn't exist
-func (d DataBase) DeleteProject(id string) error {
-	err := d.checkIfIdExists(id)
+func (d *DataBase) DeleteProject(id string) error {
+	err := d.checkIfProjectIdExists(id)
 	if err != nil {
 		return err
 	}
@@ -317,7 +345,11 @@ func (d DataBase) DeleteProject(id string) error {
 		return fmt.Errorf("failed to build delete query: %w", err)
 	}
 
-	_, err = d.postgres.Exec(DeleteQueryString, args...)
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, nil, func() error {
+		_, err := d.postgres.Exec(DeleteQueryString, args...)
+		return err
+	})
+
 	if err != nil {
 		zap.S().Debug("failed to delete project", err)
 		return fmt.Errorf("failed to delete project: %w", err)
@@ -334,12 +366,15 @@ func (d DataBase) DeleteProject(id string) error {
 //
 // returns:
 // - error: an error if the temporary data of the project
-func (d DataBase) DeleteProjectTemporaryData(id string) error {
+func (d *DataBase) DeleteProjectTemporaryData(id string) error {
 	_, err := d.GetProjectTemporaryData(id)
 	if err != nil {
 		return err
 	}
-	err = d.redis.Del(context.Background(), id).Err()
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, []error{redis.Nil}, func() error {
+		return d.redis.Del(context.Background(), id).Err()
+	})
+
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return models.DataBaseNotFound
@@ -359,7 +394,7 @@ func (d DataBase) DeleteProjectTemporaryData(id string) error {
 //
 // returns:
 // - []*ShortProject: the projects with the given owner id
-func (d DataBase) GetProjectsByOwnerId(ownerId string) ([]*models.ShortProject, error) {
+func (d *DataBase) GetProjectsByOwnerId(ownerId string) ([]*models.ShortProject, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	query := psql.Select("id", "name").From("projects").Where(sq.Eq{"owner_id": ownerId})
@@ -369,7 +404,17 @@ func (d DataBase) GetProjectsByOwnerId(ownerId string) ([]*models.ShortProject, 
 		return nil, fmt.Errorf("failed to build query: %w", err)
 	}
 
-	rows, err := d.postgres.Query(queryString, args...)
+	ok := d.isUUIDCorrect(ownerId)
+	if !ok {
+		return nil, models.DataBaseWrongID
+	}
+
+	var rows *sql.Rows
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, []error{sql.ErrNoRows}, func() error {
+		rows, err = d.postgres.Query(queryString, args...)
+		return err
+	})
+
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, models.DataBaseNotFound
@@ -402,8 +447,14 @@ func (d DataBase) GetProjectsByOwnerId(ownerId string) ([]*models.ShortProject, 
 //
 // returns:
 // - bool: true if the slug exists, false otherwise
-func (d DataBase) CheckSlug(slag string) (bool, error) {
-	val, err := d.redis.Get(context.Background(), slag).Result()
+func (d *DataBase) CheckSlug(slag string) (bool, error) {
+	var val string
+	err := utils.RetryCount(d.retryAttempts, d.retryPause, []error{redis.Nil}, func() error {
+		v, err := d.redis.Get(context.Background(), slag).Result()
+		val = v
+		return err
+	})
+
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return false, nil
@@ -422,26 +473,113 @@ func (d DataBase) CheckSlug(slag string) (bool, error) {
 //
 // returns:
 // - error: an error if the slug wasn't updated
-func (d DataBase) UpdateSlug(slag string, status bool) error {
-	err := d.redis.Set(context.Background(), slag, status, 0).Err()
+func (d *DataBase) UpdateSlug(slag string, status bool) error {
+	err := utils.RetryCount(d.retryAttempts, d.retryPause, nil, func() error {
+		return d.redis.Set(context.Background(), slag, status, 0).Err()
+	})
 	return err
+}
+
+// Push2Queue adds an arbitrary structure that supports
+// being converted to json to the queue with key
+//
+// params:
+// - key: key of queue
+// - value: that supports json conversion
+//
+// returns:
+// - error
+func (d *DataBase) Push2Queue(key string, value interface{}) error {
+	res, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	err = utils.RetryCount(d.retryAttempts, d.retryPause, nil, func() error {
+		return d.redis.LPush(context.Background(), key, res).Err()
+	})
+	if err != nil {
+		err = fmt.Errorf("failed to add value %v to Redis Queue: %s", value, err)
+		return err
+	}
+	return nil
+}
+
+// PopFromQueue pops first value from queue by key
+//
+// params:
+// - key: key of queue
+//
+// returns:
+//   - string: first value from queue
+//     if queue was empty, equals ""
+//   - error: error received when retrieving value
+func (d *DataBase) PopFromQueue(key string) (string, error) {
+	var res string
+
+	err := utils.RetryCount(d.retryAttempts, d.retryPause, []error{redis.Nil}, func() error {
+		temp := d.redis.RPop(context.Background(), key)
+		res = temp.Val()
+		return temp.Err()
+	})
+
+	return res, err
+}
+
+// AddAnalyserTask adds task to analyser queue
+//
+// params:
+// - projectId: uuid of Project
+// - typeOfAnalysis: type of analysis
+//
+// returns:
+// - error if adding fails
+func (d *DataBase) AddAnalyserTask(projectId, typeOfAnalysis string) error {
+	return d.Push2Queue(d.analyserQueueKey, models.AnalyserTask{
+		ID:   projectId,
+		Type: typeOfAnalysis,
+	})
+}
+
+// GetAnalyserTask checks the task queue for analysers
+// If the queue is empty, returns an empty structure and DataBaseQueueIsEmpty
+func (d *DataBase) GetAnalyserTask() (models.AnalyserTask, error) {
+	val, err := d.PopFromQueue(d.analyserQueueKey)
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return models.AnalyserTask{}, models.DataBaseQueueIsEmpty
+		}
+		return models.AnalyserTask{}, err
+	}
+	if val == "" {
+		return models.AnalyserTask{}, models.DataBaseQueueIsEmpty
+	}
+	var analTask models.AnalyserTask
+	err = json.Unmarshal([]byte(val), &analTask)
+	if err != nil {
+		return models.AnalyserTask{}, err
+	}
+	return analTask, err
 }
 
 // NewDB is a function that creates a new DataBase struct
 // DataBase implements the models.DataBase interface
 func NewDB(cfg *config.Config) models.DataBase {
 	// 🤓🤓🤓
-	postgresConnect, err := connection.NewPostgresConnect(cfg.Postgres)
+	postgresConnect, err := connection.NewPostgresConnect(cfg)
 	if err != nil {
 		zap.S().Fatal(fmt.Errorf("database wan't created due to error in postgres connect: %w", err))
 	}
-	redisConnect, err := connection.NewRedisConnect(cfg.Redis)
+	redisConnect, err := connection.NewRedisConnect(cfg)
 	if err != nil {
 		zap.S().Fatal(fmt.Errorf("database wan't created due to error in redis connect: %w", err))
 	}
 	zap.S().Info("Database created")
 	return &DataBase{
-		postgres: postgresConnect,
-		redis:    redisConnect,
+		postgres:         postgresConnect,
+		redis:            redisConnect,
+		analyserQueueKey: cfg.Redis.AnalyserQueueKey,
+		retryAttempts:    cfg.RetryAttempts,
+		retryPause:       time.Millisecond * time.Duration(cfg.RetryPause),
+		retryTimeout:     time.Millisecond * time.Duration(cfg.RetryTimeout),
 	}
 }

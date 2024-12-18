@@ -25,19 +25,15 @@ func TestKafkaSingle(t *testing.T) {
 	if !cfg.RunIntegrationTests {
 		return
 	}
-	cfg.Kafka.Topic = "test-topic"
-	siteConf := *broker.New(cfg, true, true)
+	siteConf := *broker.New(cfg, true, true, "sites")
 	defer siteConf.Close()
-	err := siteConf.AddSiteToParse("link", "1", 0)
+	err := siteConf.ProduceSite("link", "1", 0)
 	if err != nil {
 		t.Errorf("Error: %v", err)
 	}
-	msg, err := siteConf.CheckSitesToParse()
+	_, err = siteConf.Consume()
 	if err != nil {
 		t.Errorf("Error: %v", err)
-	}
-	if msg.Link != "link" || msg.ProjectId != "1" {
-		t.Errorf("Error: %v", msg)
 	}
 }
 
@@ -45,10 +41,10 @@ func TestKafkaMultiple(t *testing.T) {
 	if !cfg.RunIntegrationTests {
 		return
 	}
-	siteConf := *broker.New(cfg, true, false)
+	siteConf := *broker.New(cfg, true, false, "sites")
 	//defer siteConf.Close()
 	for j := 0; j < 5; j++ {
-		err := siteConf.AddSiteToParse(fmt.Sprintf("link %v", j), fmt.Sprintf("%v", j), 0)
+		err := siteConf.ProduceSite(fmt.Sprintf("link %v", j), fmt.Sprintf("%v", j), 0)
 		if err != nil {
 			t.Errorf("Error: %v", err)
 		}
@@ -59,20 +55,20 @@ func TestKafkaMultiple(t *testing.T) {
 	for i := 6; i < 11; i++ {
 		wg.Add(1)
 		go func() {
-			siteConf := *broker.New(cfg, true, true)
+			siteConf := *broker.New(cfg, true, true, "sites")
 			defer func() {
 				siteConf.Close()
 				wg.Done()
 			}()
-			err := siteConf.AddSiteToParse(fmt.Sprintf("link %v", i), fmt.Sprintf("%v", i), 0)
+			err := siteConf.ProduceSite(fmt.Sprintf("link %v", i), fmt.Sprintf("%v", i), 0)
 			if err != nil {
 				t.Errorf("Error: %v", err)
 			}
-			_, err = siteConf.CheckSitesToParse()
+			_, err = siteConf.Consume()
 			if err != nil {
 				t.Errorf("Error: %v", err)
 			}
-			_, err = siteConf.CheckSitesToParse()
+			_, err = siteConf.Consume()
 			if err != nil {
 				t.Errorf("Error: %v", err)
 			}
@@ -80,6 +76,22 @@ func TestKafkaMultiple(t *testing.T) {
 	}
 	wg.Wait()
 	time.Sleep(10 * time.Second)
+}
+
+func TestKafkaAnalyseSingle(t *testing.T) {
+	if !cfg.RunIntegrationTests {
+		return
+	}
+	siteConf := *broker.New(cfg, true, true, "analyse")
+	defer siteConf.Close()
+	err := siteConf.ProduceAnalyse("1", "type")
+	if err != nil {
+		t.Errorf("Error: %v", err)
+	}
+	_, err = siteConf.Consume()
+	if err != nil {
+		t.Errorf("Error: %v", err)
+	}
 }
 
 //func TestLoginUser(t *testing.T) {

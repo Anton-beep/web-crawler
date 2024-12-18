@@ -1,43 +1,9 @@
 import {useEffect, useRef, useState} from 'react';
-import ForceGraph3D, {ForceGraph3DInstance} from '3d-force-graph';
+import ForceGraph3D from '3d-force-graph';
 import {GraphData} from '@/types/GraphData.ts';
-// @ts-expect-error : Cannot find module 'three/src/nodes/tsl/TSLCore'
-import {NodeObject} from "three/src/nodes/tsl/TSLCore";
 import OpenSiteFromGraphCard from "@/components/OpenSiteFromGraphCard.tsx";
-
-function getBordersForNodeOn2D(node: NodeObject<number>, graph: ForceGraph3DInstance): {minX: number, minY : number, maxX: number, maxY: number} {
-    const coords = [
-        graph.graph2ScreenCoords(node.x + 5, node.y, node.z),
-        graph.graph2ScreenCoords(node.x - 5, node.y, node.z),
-        graph.graph2ScreenCoords(node.x, node.y - 5, node.z),
-        graph.graph2ScreenCoords(node.x, node.y + 5, node.z),
-        graph.graph2ScreenCoords(node.x, node.y, node.z + 5),
-        graph.graph2ScreenCoords(node.x, node.y, node.z - 5),
-    ]
-
-    let minX = coords[0].x;
-    let maxX = coords[0].x;
-    let minY = coords[0].y;
-    let maxY = coords[0].y;
-
-    for (let i = 1; i < coords.length; i++) {
-        if (coords[i].x < minX) {
-            minX = coords[i].x;
-        }
-        if (coords[i].x > maxX) {
-            maxX = coords[i].x;
-        }
-        if (coords[i].y < minY) {
-            minY = coords[i].y;
-        }
-        if (coords[i].y > maxY) {
-            maxY = coords[i].y;
-        }
-    }
-
-
-    return {minX, minY, maxX, maxY};
-}
+import {NodeObject} from 'three-forcegraph';
+import {getHoveredNodeColor, getSelectedNodeColor, getNumberedColor} from "@/utils/nodeColors.ts";
 
 export default function SitesGraph({width, height, backgroundCol, data}: {
     width: number,
@@ -50,7 +16,48 @@ export default function SitesGraph({width, height, backgroundCol, data}: {
 
     useEffect(() => {
         if (graphRef.current) {
-            const Graph = ForceGraph3D()(graphRef.current)
+            const neighbors = new Map<string, Set<string>>();
+
+            data.links.forEach((link: {source: string, target: string} | {source: {id: string}, target: {id: string}}) => {
+                let src;
+                if (typeof link.source === "string") {
+                    src = link.source;
+                } else {
+                    src = link.source?.id;
+                    if (src === undefined) {
+                        console.error("link.source.id is undefined", link);
+                        return;
+                    }
+                }
+
+                let target;
+                if (typeof link.target === "string") {
+                    target = link.target;
+                } else {
+                    target = link.target?.id;
+                    if (target === undefined) {
+                        console.error("link.target.id is undefined", link);
+                        return;
+                    }
+                }
+
+                if (!neighbors.has(src)) {
+                    neighbors.set(src, new Set());
+                }
+                if (!neighbors.has(target)) {
+                    neighbors.set(target, new Set());
+                }
+
+                neighbors.get(src)!.add(target);
+                neighbors.get(target)!.add(src);
+            });
+
+            const highlightNodesID = new Set<string>();
+            const highlightLinks = new Map<string, Set<string>>();
+            let hoverNode: string | null = null;
+
+            // Docs to graph: https://github.com/vasturiano/3d-force-graph
+            const Graph = new ForceGraph3D(graphRef.current)
                 .backgroundColor(backgroundCol)
                 .graphData(data)
                 .nodeLabel('id')
@@ -58,17 +65,173 @@ export default function SitesGraph({width, height, backgroundCol, data}: {
                 .nodeAutoColorBy('id')
                 .width(width)
                 .height(height)
-                .linkDirectionalParticles(10)
+                .linkDirectionalParticles(5)
+                .linkDirectionalParticleWidth(4)
                 .linkDirectionalParticleSpeed(0.003)
                 .nodeRelSize(5);
 
-            Graph.onNodeClick((node: NodeObject<number>, event: any) => {
-                const borders = getBordersForNodeOn2D(node, Graph);
-                if (event.layerX < borders.minX || event.layerX > borders.maxX || event.layerY < borders.minY || event.layerY > borders.maxY) {
+            // make first node bigger
+            Graph.nodeVal((node: NodeObject) => node === data.nodes[0] ? 100 : 5);
+
+            const handleNodeClick = (node: NodeObject) => {
+                if (typeof node.id !== "string") {
+                    console.error("node.id is not string", node);
                     return;
                 }
-                setLinkToOpen(node.id);
-            });
+
+                if (hoverNode === node.id) {
+                    setLinkToOpen(node.id);
+                }
+
+                hoverNode = null;
+                highlightNodesID.clear();
+                highlightLinks.clear();
+                updateHighlight();
+            }
+
+            Graph.onNodeClick(handleNodeClick);
+
+            // highlight nodes and links on hover
+
+            function updateHighlight() {
+                // trigger update of highlighted objects in scene
+                Graph
+                    .nodeColor(Graph.nodeColor())
+                    .linkWidth(Graph.linkWidth())
+                    .linkDirectionalParticles(Graph.linkDirectionalParticles());
+            }
+
+            Graph.onNodeHover((node => {
+                if (node === hoverNode) {
+                    return;
+                }
+
+                if (node === null) {
+                    if (hoverNode === null) {
+                        return;
+                    } else {
+                        hoverNode = null;
+                        highlightNodesID.clear();
+                        highlightLinks.clear();
+                        updateHighlight();
+                        return;
+                    }
+                }
+
+                highlightNodesID.clear();
+                highlightLinks.clear();
+
+                if (typeof node.id !== "string") {
+                    console.error("Node has no id", node);
+                    return;
+                }
+
+                highlightNodesID.add(node.id);
+
+                const nodeNeighbors = neighbors.get(node.id);
+                if (nodeNeighbors === undefined) {
+                    console.error("Node has no neighbors", node);
+                    return;
+                }
+
+
+                nodeNeighbors.forEach((neighbor: string) => {
+                    highlightNodesID.add(neighbor);
+                });
+
+                highlightLinks.set(node.id, nodeNeighbors)
+
+                hoverNode = node.id
+
+                updateHighlight();
+            }));
+
+            Graph.onLinkHover((link => {
+                highlightNodesID.clear();
+                highlightLinks.clear();
+
+                if (link) {
+                    if (typeof link.source !== "object" || typeof link.target !== "object") {
+                        console.error("link.source or link.target is not object ", link);
+                        return;
+                    }
+
+                    if (typeof link.source.id !== "string" || typeof link.target.id !== "string") {
+                        console.error("link.source.id or link.target.id is not string");
+                        return;
+                    }
+
+                    const setWithNeighbor = new Set<string>();
+                    setWithNeighbor.add(link.target.id);
+                    highlightLinks.set(link.source.id, setWithNeighbor);
+
+                    highlightNodesID.add(link.source.id);
+                    highlightNodesID.add(link.target.id);
+                }
+
+                updateHighlight();
+            }));
+
+            Graph.nodeColor((node) => {
+                if (typeof node.id !== "string") {
+                    console.error("node.id is not string ", node)
+                    return "rgba(0,255,255,0.6)";
+                }
+
+                const colorNum = (node as {val: number | undefined})?.val;
+                if (colorNum === undefined) {
+                    console.error("node.val is undefined", node);
+                    return "rgba(0,255,255,0.6)";
+                }
+
+                return highlightNodesID.has(node.id) ? node.id === hoverNode ? getHoveredNodeColor() : getSelectedNodeColor() : getNumberedColor(colorNum);
+            })
+
+            Graph.linkWidth(link => {
+                if (link.source === undefined || link.target === undefined) {
+                    console.error("link.source or link.target is undefined")
+                    return 1;
+                }
+
+                if (typeof link.source !== "object" || typeof link.target !== "object") {
+                    if (typeof link.source === "string" && typeof link.target === "string") {
+                        return highlightLinks.get(link.source)?.has(link.target) || highlightLinks.get(link.target)?.has(link.source) ? 4 : 1
+                    }
+
+                    console.error("link.source or link.target is not an object")
+                    return 1;
+                }
+
+                if (typeof link.source.id !== "string" || typeof link.target.id !== "string") {
+                    console.error("link.source.id or link.target.id is not a string")
+                    return 1;
+                }
+
+                return highlightLinks.get(link.source.id)?.has(link.target.id) || highlightLinks.get(link.target.id)?.has(link.source.id) ? 4 : 1
+            })
+
+            Graph.linkDirectionalParticles(link => {
+                if (link.source === undefined || link.target === undefined) {
+                    console.error("link.source or link.target is undefined")
+                    return 1;
+                }
+
+                if (typeof link.source !== "object" || typeof link.target !== "object") {
+                    if (typeof link.source === "string" && typeof link.target === "string") {
+                        return highlightLinks.has(link.source + link.target) || highlightLinks.has(link.target + link.source) ? 4 : 0
+                    }
+
+                    console.error("link.source or link.target is not an object")
+                    return 1;
+                }
+
+                if (typeof link.source.id !== "string" || typeof link.target.id !== "string") {
+                    console.error("link.source.id or link.target.id is not a string")
+                    return 1;
+                }
+
+                return highlightLinks?.get(link.source.id)?.has(link.target.id) || highlightLinks.get(link.target.id)?.has(link.source.id) ? 4 : 0
+            })
 
             return () => {
                 Graph._destructor(); // Clean up on unmount

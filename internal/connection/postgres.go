@@ -6,33 +6,36 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
+	"time"
+	"web-crawler/internal/config"
+	"web-crawler/internal/utils"
 )
 
-type PostgresConfig struct {
-	Host     string `env:"POSTGRES_HOST" env-default:"localhost"`
-	Port     int    `env:"POSTGRES_PORT" env-default:"5432"`
-	User     string `env:"POSTGRES_USER" env-default:"root"`
-	Password string `env:"POSTGRES_PASSWORD" env-default:"123"`
-	DB       string `env:"POSTGRES_DB" env-default:"root"`
-}
-
 // NewPostgresConnect is a function that creates a new connection to a Postgres database
-func NewPostgresConnect(config PostgresConfig) (*sqlx.DB, error) {
+func NewPostgresConnect(cfg *config.Config) (*sqlx.DB, error) {
 	dsn := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		config.Host,
-		config.Port,
-		config.User,
-		config.Password,
-		config.DB,
+		cfg.Postgres.Host,
+		cfg.Postgres.Port,
+		cfg.Postgres.User,
+		cfg.Postgres.Password,
+		cfg.Postgres.DB,
 	)
 
-	connect, err := sqlx.Connect("postgres", dsn)
+	var connect *sqlx.DB
+	err := utils.RetryCount(cfg.RetryAttempts, time.Millisecond*time.Duration(cfg.RetryPause), nil, func() error {
+		con, err := sqlx.Connect("postgres", dsn)
+		connect = con
+		return err
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to connect to Postgres: %w", err)
 	}
 
-	_, err = connect.Conn(context.Background())
+	err = utils.RetryTimeout(time.Millisecond*time.Duration(cfg.RetryTimeout), time.Millisecond*time.Duration(cfg.RetryPause), nil, func() error {
+		_, err := connect.Conn(context.Background())
+		return err
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to connect to Postgres: %w", err)
 	}
@@ -48,7 +51,7 @@ func NewPostgresConnect(config PostgresConfig) (*sqlx.DB, error) {
 
 // CreateProjectTable is a function that creates the table 'projects' in the Postgres database
 func CreateProjectTable(db *sqlx.DB) error {
-	query := `
+	queryProjects := `
 	CREATE TABLE IF NOT EXISTS projects (
 		id UUID PRIMARY KEY,
 		owner_id UUID NOT NULL,
@@ -58,15 +61,34 @@ func CreateProjectTable(db *sqlx.DB) error {
 		web_graph TEXT,
 		dlq_sites TEXT[],
 		max_depth INT,
-		max_number_of_links INT
+		max_number_of_links INT,
+		key_words TEXT,
+		main_ideas TEXT
 	);
 	`
 
-	_, err := db.ExecContext(context.Background(), query)
+	zap.S().Info("Table 'projects' created or already exists.")
+
+	_, err := db.ExecContext(context.Background(), queryProjects)
 	if err != nil {
 		return err
 	}
 
-	zap.S().Info("Table 'projects' created or already exists.")
+	queryUsers := `
+	CREATE TABLE IF NOT EXISTS users (
+	    		id UUID PRIMARY KEY,
+	    		username TEXT NOT NULL,
+	    		email TEXT NOT NULL,
+	    		password TEXT NOT NULL
+	);
+	`
+
+	_, err = db.ExecContext(context.Background(), queryUsers)
+	if err != nil {
+		return err
+	}
+
+	zap.S().Info("Table 'users' created or already exists.")
+
 	return nil
 }

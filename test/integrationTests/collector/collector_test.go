@@ -159,7 +159,7 @@ More information...
 	assert.Equal(t, result.Titles[0], "Example Domain\n")
 	assert.Equal(t, result.Nodes, `{"id": "https://example.com/", "name": "https://example.com/", "val": 0},{"id": "https://www.iana.org/domains/example", "name": "https://www.iana.org/domains/example", "val": 1}`)
 	assert.Equal(t, result.Links, `{"source": "https://example.com/", "target": "https://www.iana.org/domains/example"}`)
-	assert.Equal(t, result.TotalCollectorCounter, 0)
+	assert.Equal(t, result.TotalCollectorCounter, -1)
 }
 
 func TestProceedNonExistingLink(t *testing.T) {
@@ -210,7 +210,7 @@ func TestProceedNonExistingLink(t *testing.T) {
 	assert.Equal(t, result.Titles, []string{})
 	assert.Equal(t, result.Nodes, "")
 	assert.Equal(t, result.Links, "")
-	assert.Equal(t, result.TotalCollectorCounter, 0)
+	assert.Equal(t, result.TotalCollectorCounter, -1)
 	assert.Equal(t, result.DeadListQueueSites, []string{prj.StartUrl})
 }
 

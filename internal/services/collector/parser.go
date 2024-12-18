@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/html"
 	"net/http"
 	"strings"
+	"time"
 	"web-crawler/internal/utils"
 )
 
@@ -94,7 +95,7 @@ func (s *Server) AddLink(link string) {
 
 	if s.Message.Depth < s.MaxDepth {
 		s.NewCollectors++
-		err = s.Broker.AddSiteToParse(link, s.Message.ProjectId, s.Message.Depth+1)
+		err = s.Broker.ProduceSite(link, s.Message.ProjectId, s.Message.Depth+1)
 		if err != nil {
 			zap.S().Errorf("failed to add site %s to parse, AddSiteToParse returned %s", link, err)
 		}
@@ -127,7 +128,13 @@ func (s *Server) GetNode(link string) (*html.Node, error) {
 
 	utils.AddRandomHeaders(req, s.RandomGenerator)
 
-	resp, err := client.Do(req)
+	var resp *http.Response
+	err = utils.RetryCount(2, time.Second*3, nil, func() error {
+		r, err := client.Do(req)
+		resp = r
+		return err
+	})
+
 	if err != nil {
 		return nil, err
 	}

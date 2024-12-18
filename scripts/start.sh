@@ -26,4 +26,7 @@ prompt_env_files
 # Copy Docker.env to .env
 cp configs/Docker.env configs/.env
 
-echo "Setup complete."
+echo ".env files are ready, starting the application using docker..."
+
+# run docker
+docker compose -f deployments/docker-compose.yml up --build -V

@@ -19,7 +19,7 @@ export default function OpenSiteFromGraphCard({url, setUrl}: { url: string, setU
                     <DialogHeader>
                         <DialogTitle>Open URL</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to open this URL: <span className="text-accent"> {url} </span> ?
+                            Are you sure you want to open this URL: <span className="text-accent break-all"> {url} </span> ?
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">

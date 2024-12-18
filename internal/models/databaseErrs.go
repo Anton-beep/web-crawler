@@ -19,3 +19,11 @@ func (WrongUUID) Error() string {
 }
 
 var DataBaseWrongID WrongUUID
+
+type QueueIsEmpty struct{}
+
+func (QueueIsEmpty) Error() string {
+	return "queue is empty"
+}
+
+var DataBaseQueueIsEmpty QueueIsEmpty
