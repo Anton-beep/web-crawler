@@ -247,7 +247,7 @@ func TestGetAllShort(t *testing.T) {
 		StartUrl      string `json:"start_url"`
 		NumberOfLinks int    `json:"number_of_links"`
 		Depth         int    `json:"depth"`
-	}{"newCreateProject2" + strconv.Itoa(int(time.Now().Unix())), "https://google.com", 20, 20}
+	}{"newGetAllProject2" + strconv.Itoa(int(time.Now().Unix())), "https://google.com", 20, 20}
 
 	createReq2 := httptest.NewRequest(
 		http.MethodPost,
