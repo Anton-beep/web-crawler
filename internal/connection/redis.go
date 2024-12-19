@@ -14,8 +14,8 @@ import (
 func NewRedisConnect(cfg *config.Config) (*redis.Client, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port),
-		Password: "", // no password set
-		DB:       0,  // use default DB
+		Password: cfg.Redis.Password, // no password set
+		DB:       0,                  // use default DB
 	})
 
 	err := utils.RetryTimeout(time.Millisecond*time.Duration(cfg.RetryTimeout), time.Millisecond*time.Duration(cfg.RetryPause), nil, func() error {

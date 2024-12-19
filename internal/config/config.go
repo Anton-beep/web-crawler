@@ -35,6 +35,7 @@ type RedisConfig struct {
 	Host             string `env:"REDIS_HOST" env-default:"localhost"`
 	Port             int    `env:"REDIS_PORT" env-default:"6379"`
 	AnalyserQueueKey string `env:"ANALYSER_QUEUE_KEY" env-default:"analyser-queue"`
+	Password         string `env:"REDIS_HOST_PASSWORD" env-default:"password"`
 }
 
 type CollectorConfig struct {

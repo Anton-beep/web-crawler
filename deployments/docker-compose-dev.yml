@@ -48,6 +48,7 @@ services:
     container_name: redis_container
     ports:
       - "6379:6379"
+    command: /bin/sh -c "redis-server --requirepass $$REDIS_HOST_PASSWORD"
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 1s
